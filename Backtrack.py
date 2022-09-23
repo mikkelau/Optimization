@@ -5,10 +5,11 @@ Created on Fri Jul 22 17:11:42 2022
 @author: mikke
 """
 
-def Backtrack(f_current, function, g, alpha, X, p_dir): 
-    # g is the gradient at X
+def linesearch(f_current, function, g, gradients, X, p_dir, alpha): 
+    # g is the gradient at current X
     # I pass in f_current to avoid another function eval
     #print('alpha:', alpha)
+    
     mu = 1e-4
     rho = 0.5
     Xnew = X+[alpha*i for i in p_dir]
@@ -21,4 +22,11 @@ def Backtrack(f_current, function, g, alpha, X, p_dir):
         # update Xnew
         Xnew = X+[alpha*i for i in p_dir]
         f_eval = function(Xnew)
-    return Xnew, f_eval, alpha
+        
+    g_eval = gradients(Xnew, function)
+    
+    # update internal quantities
+    linesearch.p_old = p_dir
+    linesearch.alpha = alpha
+    
+    return f_eval, g_eval, alpha

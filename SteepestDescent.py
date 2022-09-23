@@ -7,8 +7,18 @@ Created on Fri Jul 22 19:54:31 2022
 
 from numpy.linalg import norm
 
-def SteepestDescent(g):
+def method(g, x, alpha, hessian, function, gradients):
 
     p = [-1*i/norm(g) for i in g]
     
-    return p
+    if method.iters == 0:
+        alpha = 1 # this is totally arbitrary, not sure what a good size is
+    else:
+        alpha = alpha*(sum(i*j for i,j in zip(method.g_old, method.p_old))/sum(i*j for i,j in zip(g, p)))
+
+    # update internal quantities
+    method.p_old = p
+    method.g_old = g
+    method.iters += 1
+
+    return p, alpha

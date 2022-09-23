@@ -4,69 +4,85 @@ Created on Fri Jul 22 18:48:35 2022
 
 @author: mikke
 """
+
 from numpy.linalg import norm
-from random import random
+from random import random, seed
 from numpy import array
-from BeanFunction import BeanFunction, BeanFunctionGradients
-from SteepestDescent import SteepestDescent
-from Backtrack import Backtrack
 from MakeContourPlot import MakeContourPlot
 import matplotlib.pyplot as plt
 
-function = lambda x: BeanFunction(x)
-gradients = lambda x: BeanFunctionGradients(x)
-method = lambda g: SteepestDescent(g)
-linesearch = lambda f_current, function, g, alpha, x, p_dir: Backtrack(f_current, function, g, alpha, x, p_dir)
+from RsquaredPrimes import function
+# from BeanFunction import function
+# from BeanFunction import gradients
+# from BeanFunction import hessian
+
+from FiniteDifference import gradients
+from FiniteDifference import hessian
+
+#from SteepestDescent import method
+#from ConjugateGradient import method
+from NewtonsMethod import method
+
+#from Backtrack import linesearch
+from BracketPinpoint import linesearch
+#from NewtonsMethod import linesearch # this just accepts the Newton step as-is
+
 
 # set up, initialize
-max_iters = 100
-upper_bounds = [3,3]
-lower_bounds = [-3,-1]
+max_iters = 500
+# might be a good idea to include poinds in the function, like function.upper_bounds, etc.
+upper_bounds = [11,-1]
+lower_bounds = [3,-200]
 guess_range = [upper_bounds[0]-lower_bounds[0],upper_bounds[1]-lower_bounds[1]]
 nVar = len(guess_range)
-MakeContourPlot(function,upper_bounds,lower_bounds)
+function.counter = 0
 x_list = []
 y_list = []
-p_old = [random() for i in range(nVar)]
-g_old = [random() for i in range(nVar)]
-g = [random()+1 for i in range(nVar)] # dummy gradients
 
 # initial guess
 guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/nVar for i in range(nVar)])
+#guess = array([-0.40903151,  0.69488563]) # newton gets stuck here
 x = guess
 x_list.append(x[0])
 y_list.append(x[1])
-g = gradients(x)
+g = gradients(x,function)
+linesearch.g = g
+method.iters = 0
+method.g_old = g
 f = function(x)
+alpha = 1
 
 iters = 0
-while (norm(g) > 1e-6) and (iters < max_iters):
+while ((norm(g) > 1e-6) and (iters < max_iters)):
     
-    # choose a search direction
-    p = method(g)
+    # choose a search direction. should pass out a search direction and initial guess for alpha
+    p, alpha = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
     
     # linesearch
-    if iters == 0:
-        alpha = norm(guess_range)/5 # this is totally arbitrary, not sure what a good start is
-    else:
-        alpha = alpha*(sum(i*j for i,j in zip(g_old, p_old))/sum(i*j for i,j in zip(g, p)))
-    # do the search
-    x, f, alpha = linesearch(f, function, g, alpha, x, p)
+    f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha)
         
+    # update x
+    #x = [j+k for (j,k) in zip(list(x),[alpha*i for i in p])]
+    x = x+[alpha*i for i in p]
+    
+    # enforce bounds (should I do this in the linesearch itself? No, the algorithm might get stuck)
+    for i in range(len(x)):
+        if (x[i] > upper_bounds[i]):
+            x[i] = upper_bounds[i]
+        elif (x[i] < lower_bounds[i]):
+            x[i] = lower_bounds[i]
+    
     # store the updated point
     x_list.append(x[0])
     y_list.append(x[1])
     
-    # keep track of previous values before updating them
-    p_old = p
-    g_old = g
-    
-    # update gradient at new location
-    g = gradients(x)
-    
     iters += 1
+    #print('iter:',iters)
 
 print("iterations:",iters)
+print("function calls:", function.counter)
 print("solution:",x)
-print("function value:",f)
+print("function value:",f)    
+
+MakeContourPlot(function,upper_bounds,lower_bounds)
 plt.plot(x_list,y_list,c='red',marker='o',markerfacecolor='none')
