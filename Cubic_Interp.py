@@ -18,7 +18,7 @@ def interpolate(alpha1, alpha2, f1, f2, slope1, slope2):
     alpha = alpha2-(alpha2-alpha1)*(slope2+beta2-beta1)/(slope2-slope1+2*beta2)
     
     # make sure interpolated step isn't outside the bracket
-    if ((alpha > alpha1) and (alpha > alpha2)):
+    if (((alpha > alpha1) and (alpha > alpha2)) or ((alpha < alpha1) and (alpha < alpha2))):
         # if it is outside, use bisection
         alpha = 0.5*(alpha1+alpha2)
         print('bisected: too big a step')
@@ -43,8 +43,6 @@ def plot_linesearch(alpha1, alpha2, f1, f2, slope1, slope2, alpha, f_p, g_p):
         upper = alpha2
     length = 100
     
-    # b = [f1, f2, slope1, slope2]
-    # A = [[1, alpha1, alpha1**2, alpha1**3],[1, alpha2, alpha1**2, alpha2**3],[0, 1, 2*alpha1, 3*alpha1**2], [0, 1, 2*alpha2, 3*alpha2**2]]
     b = [slope1, slope2, 0]
     A = [[1, 2*alpha1, 3*alpha1**2], [1, 2*alpha2, 3*alpha2**2], [1, 2*alpha, 3*alpha**2]]
     c = LU_factor(b, A)
