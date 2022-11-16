@@ -16,6 +16,7 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
     else:
         print('k =/= 0')
         beta = sum([i*j for (i, j) in zip(g, g)])/sum([i*j for (i, j) in zip(method.g_old, method.g_old)]) 
+        beta = max(0,beta) # force Beta to not be negative
         p = [j+k for (j, k) in zip([-1*i/norm(g) for i in g], [beta*i for i in method.p_old])]
         
     if method.iters == 0:
