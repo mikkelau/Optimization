@@ -13,15 +13,18 @@ def interpolate(alpha1, alpha2, f1, f2, slope1, slope2):
     
     beta1 = slope1+slope2-3*(f1-f2)/(alpha1-alpha2)
     
-    beta2 = sign(alpha2-alpha1)*sqrt((beta1**2)-slope1*slope2)
-    
-    alpha = alpha2-(alpha2-alpha1)*(slope2+beta2-beta1)/(slope2-slope1+2*beta2)
-    
+    if ((beta1**2) >= slope1*slope2): # make sure we don't take the square root of a negative number
+        beta2 = sign(alpha2-alpha1)*sqrt((beta1**2)-slope1*slope2)
+        alpha = alpha2-(alpha2-alpha1)*(slope2+beta2-beta1)/(slope2-slope1+2*beta2)
+    else:
+        alpha = 0.5*(alpha1+alpha2)
+        print('bisected: ill-conditioned')
+        
     # make sure interpolated step isn't outside the bracket
     if (((alpha > alpha1) and (alpha > alpha2)) or ((alpha < alpha1) and (alpha < alpha2))):
         # if it is outside, use bisection
         alpha = 0.5*(alpha1+alpha2)
-        print('bisected: too big a step')
+        print('bisected: outside bracket')
     
     return alpha
 
