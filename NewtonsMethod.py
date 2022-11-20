@@ -17,6 +17,8 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
     
     alpha = 1.0 # Newton step
     
+    method.iters += 1
+    
     return p, alpha
 
 def linesearch(f, function, g, gradients, x, p, alpha):

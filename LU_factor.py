@@ -11,7 +11,7 @@ def LU_factor(b,A):
     y = []
     u = np.empty((n,))
     L = np.identity(n)
-    U = np.array(A,dtype=np.float64)
+    U = np.array(A,dtype=np.float64) # need to specify floats so that nothing gets truncated to ints
     # want to go row by row, then column by column, then calculate column by column
     for row in range(1,n): # don't do the first row
         for column in range(row): # don't turn the diagonal into 0's, so make column=row the top of the exclusive range
