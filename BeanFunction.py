@@ -6,6 +6,8 @@ Created on Fri Jul 22 16:32:09 2022
 """
  
 # bounds: -3 < x < 3; -1 < y < 3
+upper_bounds = [3,3]
+lower_bounds = [-3,-1]
 def function(X):   
     x = X[0]
     y = X[1]
