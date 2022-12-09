@@ -23,7 +23,7 @@ def MakeContourPlot(function,upper_lims,lower_lims):
             
     # plots filled contour plot
     fig, ax = plt.subplots(1, 1)
-    ax.contourf(X, Y, Z)
+    ax.contourf(X, Y, Z, 15)
       
     ax.set_title('Filled Contour Plot')
     #ax.set_xlabel('feature_x')
