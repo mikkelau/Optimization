@@ -12,20 +12,21 @@ from MakeContourPlot import MakeContourPlot
 import matplotlib.pyplot as plt
 
 # from RsquaredPrimes import function
-from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian
+# from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian
 #from Rosenbrock import function, upper_bounds, lower_bounds
 #from GoldsteinPrice import function, upper_bounds, lower_bounds
+from TwoSpring import function, upper_bounds, lower_bounds
 
-#from FiniteDifference import gradients, hessian
+from FiniteDifference import gradients, hessian
 
-from SteepestDescent import method
-#from ConjugateGradient import method
-#from NewtonsMethod import method
-#from BFGS import method
+# from SteepestDescent import method
+# from ConjugateGradient import method
+# from NewtonsMethod import method
+from BFGS import method
 
-from Backtrack import linesearch
-#from BracketPinpoint import linesearch
-#from NewtonsMethod import linesearch # this just accepts the step as-is
+# from Backtrack import linesearch
+from BracketPinpoint import linesearch
+# from NewtonsMethod import linesearch # this just accepts the step as-is
 
 
 # set up, initialize
@@ -37,8 +38,8 @@ x_list = []
 y_list = []
 
 # initial guess
-#guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/nVar for i in range(nVar)])
-guess = array([ 1.69697623, -0.18174705]) 
+guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/nVar for i in range(nVar)])
+guess = array([9, -1])
 print('initial guess:',guess)
 x = guess
 x_list.append(x[0])
