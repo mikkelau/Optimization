@@ -4,6 +4,8 @@ Created on Thu Jul  7 16:05:22 2022
 
 @author: mikke
 """
+import FiniteDifference
+
 # limits are -2 <= x,y <= 2
 upper_bounds = [2,2]
 lower_bounds = [-2,-2]
@@ -17,3 +19,13 @@ def function(X):
     function.counter += 1
     
     return f
+
+def gradients(X, function):
+    g = FiniteDifference.gradients(X, function)
+    
+    return g
+
+def hessian(X, function, gradients):
+    H = FiniteDifference.hessian(X, function, gradients)
+    
+    return H
