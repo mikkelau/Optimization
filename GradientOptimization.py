@@ -13,16 +13,15 @@ import matplotlib.pyplot as plt
 
 # from RsquaredPrimes import function
 # from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian
-#from Rosenbrock import function, upper_bounds, lower_bounds
-#from GoldsteinPrice import function, upper_bounds, lower_bounds
-from TwoSpring import function, upper_bounds, lower_bounds
-
-from FiniteDifference import gradients, hessian
+# from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
+# from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian
+from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
+# from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
 
 # from SteepestDescent import method
 # from ConjugateGradient import method
-# from NewtonsMethod import method
-from BFGS import method
+from NewtonsMethod import method
+# from BFGS import method
 
 # from Backtrack import linesearch
 from BracketPinpoint import linesearch
@@ -36,15 +35,17 @@ nVar = len(guess_range)
 function.counter = 0
 x_list = []
 y_list = []
+g_list = []
 
 # initial guess
 guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/nVar for i in range(nVar)])
-guess = array([9, -1])
+# guess = array([-5000,  -3])
 print('initial guess:',guess)
 x = guess
 x_list.append(x[0])
 y_list.append(x[1])
 g = gradients(x,function)
+g_list.append(norm(g))
 linesearch.g = g
 method.iters = 0
 method.g_old = g
@@ -53,7 +54,7 @@ alpha = 1
 
 bounds_enforced = False
 while ((norm(g) > 1e-6) and (method.iters < max_iters)):
-
+    
     # choose a search direction. should pass out a search direction and initial guess for alpha
     p, alpha = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
     
@@ -90,10 +91,10 @@ while ((norm(g) > 1e-6) and (method.iters < max_iters)):
        g = gradients(x,function) 
        bounds_enforced = False
     
-    # store the updated point
+    # store the updated point and associated gradient
     x_list.append(x[0])
     y_list.append(x[1])
-    
+    g_list.append(norm(g))
 
 print("iterations:", method.iters)
 print("function calls:", function.counter)
@@ -102,3 +103,8 @@ print("function value:",f)
 
 MakeContourPlot(function,upper_bounds,lower_bounds)
 plt.plot(x_list,y_list,c='red',marker='o',markerfacecolor='none')
+
+plt.figure()
+plt.yscale("log")
+plt.plot(g_list)
+plt.grid()

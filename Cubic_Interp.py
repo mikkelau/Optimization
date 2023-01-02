@@ -62,7 +62,8 @@ def plot_linesearch(alpha1, alpha2, f1, f2, slope1, slope2, alpha, f_p, g_p):
     plt.plot(x,y)
     plt.plot([lower, alpha, upper], [f_lower, c0+c1*alpha+c2*(alpha**2)+c3*(alpha**3), f_upper],'o')
     plt.plot(alpha, f_p, 'o', color='red')
-
+    plt.grid()
+    
     # naming the x axis 
     plt.xlabel('alpha') 
     # naming the y axis 
