@@ -15,16 +15,16 @@ import matplotlib.pyplot as plt
 # from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian
-from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
-# from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
+# from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
+from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
 
 # from SteepestDescent import method
 # from ConjugateGradient import method
 from NewtonsMethod import method
 # from BFGS import method
 
-# from Backtrack import linesearch
-from BracketPinpoint import linesearch
+from Backtrack import linesearch
+# from BracketPinpoint import linesearch
 # from NewtonsMethod import linesearch # this just accepts the step as-is
 
 
@@ -79,7 +79,7 @@ while ((norm(g) > 1e-6) and (method.iters < max_iters)):
     # check for situations where the current x is on the boundary, and the proposed step will be outside the boundary, 
     # which would correct alpha to 0 and and remain in the same spot
     if ((alpha == 0.0) and (bounds_enforced == True)):
-        print('method got stuck')
+        print('method got stuck on boundary')
         break
             
        
