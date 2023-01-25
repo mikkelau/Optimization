@@ -7,32 +7,32 @@ Created on Tue Jan  3 15:32:14 2023
 
 import optimizer_gradients
 from numpy.linalg import norm
+import FiniteDifference
 
 class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters, x0):
         super().__init__(function, upper_bounds, lower_bounds, max_iters, x0)
     
-    def optimize(self, method, linesearch, gradients, hessian):
+    def optimize(self, method, linesearch, gradients=FiniteDifference.gradients, hessian=FiniteDifference.hessian):
         x = self.guess
         if (len(x)==2):
-            x_list = []
-            y_list = []
-            x_list.append(x[0])
-            y_list.append(x[1])
+            self.x_list = []
+            self.y_list = []
+            self.x_list.append(x[0])
+            self.y_list.append(x[1])
         g_list = []
         function = self.function
         max_iters = self.max_iters
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
         
-        
+        function.counter = 0
+        f = function(x)
         g = gradients(x,function)
         g_list.append(norm(g))
         linesearch.g = g
         method.iters = 0
         method.g_old = g
-        function.counter = 0
-        f = function(x)
         alpha = 1
 
         bounds_enforced = False
@@ -76,8 +76,8 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
             
             # store the updated point and associated gradient
             if (len(x)==2):
-                x_list.append(x[0])
-                y_list.append(x[1])
+                self.x_list.append(x[0])
+                self.y_list.append(x[1])
             g_list.append(norm(g))
             
         self.iterations = method.iters
@@ -85,6 +85,3 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         self.solution = x
         self.function_value = f
         self.convergence = g_list
-        if (len(x)==2):
-            self.x_list = x_list
-            self.y_list = y_list

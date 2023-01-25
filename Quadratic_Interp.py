@@ -12,10 +12,10 @@ def interpolate(alpha1, alpha2, f1, f2, slope1, slope2):
     alpha = (2*alpha1*(f2-f1)+slope1*(alpha1**2-alpha2**2))/denom
     
     # make sure interpolated step isn't outside the bracket
-    if ((alpha > alpha1) and (alpha > alpha2)):
+    if (((alpha > alpha1) and (alpha > alpha2)) or ((alpha < alpha1) and (alpha < alpha2))):
         # if it is outside, use bisection
         alpha = 0.5*(alpha1+alpha2)
-        #print('bisected: too big a step')
+        # print('bisected: outside bracket')
     
     return alpha
 

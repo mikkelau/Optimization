@@ -24,6 +24,7 @@ class Optimizer:
         print("function calls:", self.function_calls)
         print("solution:",self.solution)
         print("function value:",self.function_value)
+        print("\n")
     
     def convergence_plot(self):
         plt.figure()

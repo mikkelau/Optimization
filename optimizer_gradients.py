@@ -12,7 +12,6 @@ class GradientBasedOptimizer(optimizer.Optimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters, x0):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.guess = x0
-        print('initial guess:',self.guess)
         self.x_list = None
         self.y_list = None
         

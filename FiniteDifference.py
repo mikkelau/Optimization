@@ -4,10 +4,11 @@ Created on Wed Aug 24 17:30:53 2022
 
 @author: mikke
 """
+import numpy as np
 
 def gradients(X, function):
     g = []
-    delta = 0.000001
+    delta = (np.finfo(np.float32).eps)**(1/3)
     for idx in range(len(X)):
         X_up = [i for i in X]
         X_dn = [i for i in X]
@@ -19,7 +20,7 @@ def gradients(X, function):
 
 def hessian(X, function, gradients):
     H = [[] for i in X]
-    delta = 0.000001
+    delta = (np.finfo(np.float32).eps)**(1/3)
     for idx in range(len(X)):
         X_up = [i for i in X]
         X_dn = [i for i in X]

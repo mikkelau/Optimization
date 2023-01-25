@@ -16,7 +16,8 @@ import matplotlib.pyplot as plt
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian
 # from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
-from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
+# from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
+from BoothFunction import function, upper_bounds, lower_bounds, gradients, hessian
 
 # from SteepestDescent import method
 # from ConjugateGradient import method
