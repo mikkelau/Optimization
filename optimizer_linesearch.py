@@ -32,7 +32,6 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         g_list.append(norm(g))
         linesearch.g = g
         method.iters = 0
-        method.g_old = g
         alpha = 1
 
         bounds_enforced = False
@@ -44,7 +43,9 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
             # linesearch
             f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha)
                 
-            # enforce bounds (should I do this in the linesearch itself? No, the algorithm might get stuck because the bounds enforcement may make the point not good enough forever)        
+            # enforce bounds (should I do this in the linesearch itself? 
+            # No, the algorithm might get stuck because the bounds enforcement may make the point not good enough forever.
+            # However, if the function is not defined outside the bounds then I'll run into issues)        
             alpha_new = alpha
             for i in range(len(x)):
                 if (x[i]+alpha*p[i] > upper_bounds[i]):

@@ -9,9 +9,8 @@ from numpy.linalg import norm
 
 def method(g, x, alpha, hessian, function, gradients): # g is a list, not an array
     
-    if (abs(sum([i*j for (i, j) in zip(g, method.g_old)])/sum([i*j for (i, j) in zip(g, g)])) >= 0.1): # this will always be true on the first iteration because g and g_old are equal
+    if (method.iters == 0) or (abs(sum([i*j for (i, j) in zip(g, method.g_old)])/sum([i*j for (i, j) in zip(g, g)])) >= 0.1):
         method.k = 0 
-    if (method.k == 0): # test getting rid of this if statement, just use the one above it. Seems redundant
         p = [-1*i/norm(g) for i in g]
     else:
         print('utilized beta')

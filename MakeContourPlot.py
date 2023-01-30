@@ -7,6 +7,7 @@ Created on Sat Jul  2 10:58:16 2022
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import ticker
 
 
 def MakeContourPlot(function,upper_lims,lower_lims):
@@ -21,9 +22,12 @@ def MakeContourPlot(function,upper_lims,lower_lims):
         for row in range(numpoints):
             Z[row,col] = function((feature_x[col], feature_y[row])) # function inputs defined as a tuple, not sure if that matters
             
-    # plots filled contour plot
+    # create filled contour plot
     fig, ax = plt.subplots(1, 1)
-    ax.contourf(X, Y, Z, 15)
+    if (Z.max() > 1000*Z.min()): # check if a logarithmic contour plot is needed
+        ax.contourf(X, Y, Z, 15, locator=ticker.LogLocator())
+    else:
+        ax.contourf(X, Y, Z, 15)
       
     ax.set_title('Filled Contour Plot')
     #ax.set_xlabel('feature_x')

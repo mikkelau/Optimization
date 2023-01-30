@@ -20,8 +20,8 @@ from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessia
 # from EasomFunction import function, upper_bounds, lower_bounds, gradients, hessian
 
 # from SteepestDescent import method
-# from ConjugateGradient import method
-from NewtonsMethod import method
+from ConjugateGradient import method
+# from NewtonsMethod import method
 # from BFGS import method
 
 # from Backtrack import linesearch
@@ -40,7 +40,7 @@ numRuns = 1
 
 for runNum in range(numRuns):
     # initial guess
-    guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/nVar for i in range(nVar)])
+    guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
     # print('initial guess:',guess)
 
     # initialize the optimizer
