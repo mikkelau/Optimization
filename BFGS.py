@@ -24,15 +24,17 @@ def method(g, x, alpha, hessian, function, gradients):  # g is a list, not an ar
         
         y = np.array([i-j for (i,j) in zip(g,g_old)])
         s = np.array([i-j for (i,j) in zip(x,x_old)])
-        
-        # might be worth adding a check here if y dot s is positive
-        
+                
         # if calculating p using the Hessian directly 
         # H_old = method.H_old
         # H = H_old + np.outer(y,y)/np.dot(y,s)-np.dot(np.outer(H_old.dot(s),s),H_old)/np.dot(s.dot(H_old),s)
         
-        sigma = 1/y.dot(s)
-        V = (I-sigma*np.outer(s,y))@V_old@(I-sigma*np.outer(y,s))+sigma*np.outer(s,s)
+        # make sure y dot s is not 0
+        if (y.dot(s) == 0):
+            V = I/norm(g)
+        else:
+            sigma = 1/y.dot(s)
+            V = (I-sigma*np.outer(s,y))@V_old@(I-sigma*np.outer(y,s))+sigma*np.outer(s,s)
 
     # if calculating p using the Hessian directly (more computationally demanding)
     # p = LU_factor(g, H)
