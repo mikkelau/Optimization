@@ -24,7 +24,8 @@ def MakeContourPlot(function,upper_lims,lower_lims):
             
     # create filled contour plot
     fig, ax = plt.subplots(1, 1)
-    if (Z.max() > 1000*Z.min()): # check if a logarithmic contour plot is needed
+    if ((Z.max() > 1000*Z.min()) and (Z.min() > 0)): # check if a logarithmic contour plot is needed
+        # maybe if Z.min is less than 0, shift everything up to be able to plot on a logarithmic contour plot?
         ax.contourf(X, Y, Z, 15, locator=ticker.LogLocator())
     else:
         ax.contourf(X, Y, Z, 15)
