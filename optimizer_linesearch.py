@@ -44,7 +44,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
             f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha)
                 
             # enforce bounds (should I do this in the linesearch itself? 
-            # No, the algorithm might get stuck because the bounds enforcement may make the point not good enough forever.
+            # No, the algorithm might get stuck because the bounds enforcement may make the point not good enough forever. This could be fixed with a check of some sort
             # However, if the function is not defined outside the bounds then I'll run into issues)        
             alpha_new = alpha
             for i in range(len(x)):
@@ -60,12 +60,15 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                     if (alpha_new < alpha): # this check is needed to make sure we aren't overwriting an alpha that was already solved for when checking a different bound
                         alpha = alpha_new
                         bounds_enforced = True
+                        
             # check for situations where the current x is on the boundary, and the proposed step will be outside the boundary, 
             # which would correct alpha to 0 and and remain in the same spot
             if ((alpha == 0.0) and (bounds_enforced == True)):
                 print('method got stuck on boundary')
-                break
-                    
+                # update f,g
+                f = function(x)
+                g = gradients(x,function)
+                break   
                
             # update x
             x = x+[alpha*i for i in p]
