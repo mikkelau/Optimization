@@ -6,15 +6,16 @@ Created on Fri Jul 22 19:54:31 2022
 """
 
 from numpy.linalg import norm
+import numpy as np
 
 def method(g, x, alpha, hessian, function, gradients):
 
-    p = [-1*i/norm(g) for i in g]
+    p = np.array([-1*i/norm(g) for i in g])
     
     if (method.iters == 0):
         alpha = 1 # this is totally arbitrary, not sure what a good size is
     else:
-        alpha = alpha*(sum(i*j for i,j in zip(method.g_old, method.p_old))/sum(i*j for i,j in zip(g, p)))
+        alpha = alpha*(np.dot(method.g_old, method.p_old)/np.dot(g, p))
 
     # update internal quantities
     method.p_old = p

@@ -29,7 +29,9 @@ def function(Y):
     for idx in range(len(Y)-1):
         delx = X[idx+1]-X[idx]
         dely = Y[idx+1]-Y[idx]
-        S += sqrt((delx**2)+(dely**2))/(sqrt(H-Y[idx+1]-mu*X[idx+1])+sqrt(H-Y[idx]-mu*X[idx]))
+        
+        # Avoid taking the square root of a negative number
+        S += sqrt((delx**2)+(dely**2))/(sqrt(max(H-Y[idx+1]-mu*X[idx+1],0.0))+sqrt(max(H-Y[idx]-mu*X[idx],0.0)))
     
     f = S
     

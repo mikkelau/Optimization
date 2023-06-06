@@ -30,11 +30,9 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         f = function(x)
         g = gradients(x,function)
         g_list.append(norm(g))
-        linesearch.g = g
         method.iters = 0
         alpha = 1
 
-        bounds_enforced = False
         while ((norm(g) > 1e-6) and (method.iters < max_iters)):
             
             # choose a search direction. should pass out a search direction and initial guess for alpha
@@ -50,11 +48,6 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                
             # update x
             x = x+[alpha*i for i in p]
-                    
-            if bounds_enforced == True: # update f,g
-               f = function(x)
-               g = gradients(x,function) 
-               bounds_enforced = False
             
             # store the updated point and associated gradient
             if (len(x)==2):

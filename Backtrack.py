@@ -9,6 +9,7 @@ import numpy as np
 def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds): 
     # g is the gradient at current X
     # I pass in f_current to avoid another function eval
+    
     #print('alpha:', alpha)
     
     mu = 1e-4
@@ -56,9 +57,5 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
                 f_eval = function(Xnew)
             
         g_eval = gradients(Xnew, function)
-    
-    # update internal quantities. Are these needed?
-    linesearch.p_old = p_dir
-    linesearch.alpha = alpha
     
     return f_eval, g_eval, alpha

@@ -6,27 +6,28 @@ Created on Fri Jul 22 19:54:31 2022
 """
 
 from numpy.linalg import norm
+import numpy as np
 
 def method(g, x, alpha, hessian, function, gradients): # g is a list, not an array
     
     if (method.iters == 0) or (abs(sum([i*j for (i, j) in zip(g, method.g_old)])/sum([i*j for (i, j) in zip(g, g)])) >= 0.1):
         method.k = 0 
-        p = [-1*i/norm(g) for i in g]
+        p = np.array([-1*i/norm(g) for i in g])
     else:
         print('utilized beta')
         # Fletcher–Reeves formula
         #beta = sum([i*j for (i, j) in zip(g, g)])/sum([i*j for (i, j) in zip(method.g_old, method.g_old)]) 
         
         # Polak–Ribière formula
-        beta = sum([i*j for (i, j) in zip(g, [k-l for (k,l) in zip(g,method.g_old)])])/sum([i*j for (i, j) in zip(method.g_old, method.g_old)]) 
+        beta = np.dot(g, g-method.g_old)/np.dot(method.g_old, method.g_old) 
         
-        beta = max(0,beta) # force Beta to not be negative
-        p = [j+k for (j, k) in zip([-1*i/norm(g) for i in g], [beta*i for i in method.p_old])]
+        beta = max(0.0,beta) # force Beta to not be negative
+        p = np.array([-1*i/norm(g) for i in g])+beta*method.p_old
         
     if method.iters == 0:
         alpha = 1 # this is totally arbitrary, not sure what a good size is
     else:
-        alpha = alpha*abs((sum(i*j for i,j in zip(method.g_old, method.p_old))/sum(i*j for i,j in zip(g, p))))
+        alpha = alpha*abs((np.dot(method.g_old, method.p_old)/np.dot(g, p)))
 
     # update internal quantities
     method.k += 1

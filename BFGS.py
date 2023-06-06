@@ -37,11 +37,9 @@ def method(g, x, alpha, hessian, function, gradients):  # g is a list, not an ar
             V = (I-sigma*np.outer(s,y))@V_old@(I-sigma*np.outer(y,s))+sigma*np.outer(s,s)
 
     # if calculating p using the Hessian directly (more computationally demanding)
-    # p = LU_factor(g, H)
+    # p = -1*LU_factor(g, H) # -1 to go DOWNhill
    
-    p = np.dot(V,g)
-    
-    p = [i*-1 for i in p]
+    p = -1*np.dot(V,g) # -1 to go DOWNhill
     
     alpha = 1.0 # Newton step
 

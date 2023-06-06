@@ -11,10 +11,8 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
 
     H = hessian(x, function, gradients)
     
-    p = LU_factor(g, H)
-    
-    p = [i*-1 for i in p]
-    
+    p = -1*LU_factor(g, H) # -1 to go DOWNhill
+        
     alpha = 1.0 # Newton step
     
     method.iters += 1
@@ -25,7 +23,7 @@ def linesearch(f, function, g, gradients, x, p, alpha, upper_bounds, lower_bound
     alpha = 1.0
     
     # update x
-    Xnew = x+[alpha*i for i in p]
+    Xnew = x+alpha*p
     f_eval = function(Xnew)
     g_eval = gradients(Xnew,function)
     

@@ -8,10 +8,12 @@ Created on Fri Jul 22 17:11:42 2022
 from Cubic_Interp import interpolate, plot_linesearch
 # from Quadratic_Interp import interpolate, plot_linesearch
 #from Bisect import interpolate
+import numpy as np
 
 def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds): 
     # g is the gradient at current point
     # I pass in f_current to avoid another function eval
+    
     #print('alpha:', alpha)
         
     mu1 = 1e-4
@@ -21,7 +23,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     
     alpha2 = alpha
     f1 = f_current
-    slope_current = sum([i*j for (i, j) in zip(g, p_dir)]) # this is the dot product
+    slope_current = np.dot(g, p_dir) 
     slope1 = slope_current
     first = True
     bounds_enforced = False
@@ -42,12 +44,12 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
                     alpha2 = alpha_new
                     bounds_enforced = True
                     
-        Xnew = X+[alpha2*i for i in p_dir]
+        Xnew = X+alpha2*p_dir
         f2 = function(Xnew)
         f_eval = f2
         g2 = gradients(Xnew, function)
         g_eval = g2
-        slope2 = sum([i*j for (i, j) in zip(g2, p_dir)]) # this is the dot product
+        slope2 = np.dot(g2, p_dir) # this is the dot product
         if (f2 > f_current+mu1*alpha2*slope_current) or (not first and (f2 > f1)): # new point is worse than current point
             # There is a point that satisfies strong wolfe conditions between current and guess, so find it
             f_eval, g_eval, alpha = pinpoint(alpha1, alpha2, f_current, f1, f2, slope_current, slope1, slope2, mu1, mu2, function, gradients, X, p_dir)            
@@ -71,21 +73,17 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
                 alpha2 = sigma*alpha2
         first = False
     
-    # update internal quantities
-    linesearch.p_old = p_dir
-    linesearch.alpha = alpha
-    
     return f_eval, g_eval, alpha
 
 def pinpoint(alpha_low, alpha_high, f_current, f_low, f_high, slope_current, slope_low, slope_high, mu1, mu2, function, gradients, X, p_dir):
     k = 0
     while True:
         alpha_p = interpolate(alpha_low, alpha_high, f_low, f_high, slope_low, slope_high)
-        Xnew = X+[alpha_p*i for i in p_dir]
+        Xnew = X+alpha_p*p_dir
         f_p = function(Xnew)
         g_p = gradients(Xnew, function)
         # plot_linesearch(alpha_low, alpha_high, f_low, f_high, slope_low, slope_high, alpha_p, f_p, g_p)
-        slope_p = sum([i*j for (i, j) in zip(g_p, p_dir)]) # this is the dot product
+        slope_p = np.dot(g_p, p_dir) # this is the dot product
         if ((f_p > f_current+mu1*alpha_p*slope_current) or (f_p > f_low)): # if new point does not decrease fitness, or if it is not lower than the low step
             alpha_high = alpha_p # make this the "high" point
             # also update f_high, slope_high
