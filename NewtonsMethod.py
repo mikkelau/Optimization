@@ -21,8 +21,8 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
     
     return p, alpha
 
-def linesearch(f, function, g, gradients, x, p, alpha):
-    alpha = 1
+def linesearch(f, function, g, gradients, x, p, alpha, upper_bounds, lower_bounds):
+    alpha = 1.0
     
     # update x
     Xnew = x+[alpha*i for i in p]

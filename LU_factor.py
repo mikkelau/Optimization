@@ -8,7 +8,7 @@ import numpy as np
 
 def LU_factor(b,A):
     n = len(b)
-    y = []
+    y = np.empty((n,))
     u = np.empty((n,))
     L = np.identity(n)
     U = np.array(A,dtype=np.float64) # need to specify floats so that nothing gets truncated to ints
@@ -22,13 +22,13 @@ def LU_factor(b,A):
             for j in range(n): # iterate through all columns of that row
                 U[row][j] = float(U[row][j]-mult*U[column][j])
         
-    y.append(b[0]/L[0][0])
+    y[0] = b[0]/L[0][0]
     for i in range(1,n):
         big_sum = 0
         for j in range(i):
             big_sum += L[i][j]*y[j] 
         yi = (1/L[i][i])*(b[i]-big_sum)
-        y.append(yi)
+        y[i] = yi
         
     u[n-1] = y[n-1]/U[n-1][n-1]
     for i in reversed(range(n-1)):
