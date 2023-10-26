@@ -9,6 +9,7 @@ from Cubic_Interp import interpolate, plot_linesearch
 # from Quadratic_Interp import interpolate, plot_linesearch
 #from Bisect import interpolate
 import numpy as np
+from EnforceBounds import enforce_bounds
 
 def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds): 
     # g is the gradient at current point
@@ -26,23 +27,9 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     slope_current = np.dot(g, p_dir) 
     slope1 = slope_current
     first = True
-    bounds_enforced = False
     while True:
         # enforce bounds      
-        alpha_new = alpha2
-        for i in range(len(X)):
-            if (X[i]+alpha2*p_dir[i] > upper_bounds[i]):
-                # solve for the alpha that would land on the boundary
-                alpha_new = (upper_bounds[i]-X[i])/p_dir[i]
-                if (alpha_new < alpha2): # this check is needed to make sure we aren't overwriting an alpha that was already solved for when checking a different bound
-                    alpha2 = alpha_new
-                    bounds_enforced = True
-            elif (X[i]+alpha2*p_dir[i] < lower_bounds[i]):
-                # solve for the alpha that would land on the boundary
-                alpha_new = (lower_bounds[i]-X[i])/p_dir[i]
-                if (alpha_new < alpha2): # this check is needed to make sure we aren't overwriting an alpha that was already solved for when checking a different bound
-                    alpha2 = alpha_new
-                    bounds_enforced = True
+        alpha2, bounds_enforced = enforce_bounds(alpha2, X, p_dir, upper_bounds, lower_bounds)
                     
         Xnew = X+alpha2*p_dir
         f2 = function(Xnew)

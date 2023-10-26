@@ -18,13 +18,13 @@ def interpolate(alpha1, alpha2, f1, f2, slope1, slope2):
         alpha = alpha2-(alpha2-alpha1)*(slope2+beta2-beta1)/(slope2-slope1+2*beta2)
     else:
         alpha = 0.5*(alpha1+alpha2)
-        print('bisected: ill-conditioned')
+        # print('bisected: ill-conditioned')
         
     # make sure interpolated step isn't outside the bracket
     if (((alpha > alpha1) and (alpha > alpha2)) or ((alpha < alpha1) and (alpha < alpha2))):
         # if it is outside, use bisection
         alpha = 0.5*(alpha1+alpha2)
-        print('bisected: outside bracket')
+        # print('bisected: outside bracket')
     
     return alpha
 
@@ -58,7 +58,7 @@ def plot_linesearch(alpha1, alpha2, f1, f2, slope1, slope2, alpha, f_p, g_p):
     
     y = [c0+c1*i+c2*(i**2)+c3*(i**3) for i in x]
     
-    
+    plt.figure()
     plt.plot(x,y)
     plt.plot([lower, alpha, upper], [f_lower, c0+c1*alpha+c2*(alpha**2)+c3*(alpha**3), f_upper],'o')
     plt.plot(alpha, f_p, 'o', color='red')

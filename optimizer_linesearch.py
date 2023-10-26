@@ -15,11 +15,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
     
     def optimize(self, method, linesearch, gradients=FiniteDifference.gradients, hessian=FiniteDifference.hessian):
         x = self.guess
-        if (len(x)==2):
-            self.x_list = []
-            self.y_list = []
-            self.x_list.append(x[0])
-            self.y_list.append(x[1])
+        self.x_list.append(x)
         g_list = []
         function = self.function
         max_iters = self.max_iters
@@ -50,10 +46,10 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
             x = x+[alpha*i for i in p]
             
             # store the updated point and associated gradient
-            if (len(x)==2):
-                self.x_list.append(x[0])
-                self.y_list.append(x[1])
+            self.x_list.append(x)
+            self.f_list.append(f)
             g_list.append(norm(g))
+            
             
         self.iterations = method.iters
         self.function_calls = function.counter
