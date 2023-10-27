@@ -9,9 +9,9 @@ from MakeContourPlot import MakeContourPlot
 import matplotlib.pyplot as plt
 
 class GradientBasedOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, x0):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
-        self.guess = x0
+        self.guess = []
         self.x_list = []
         self.f_list = []
         

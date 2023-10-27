@@ -10,11 +10,12 @@ from numpy.linalg import norm
 import FiniteDifference
 
 class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, x0):
-        super().__init__(function, upper_bounds, lower_bounds, max_iters, x0)
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters):
+        super().__init__(function, upper_bounds, lower_bounds, max_iters)
     
-    def optimize(self, method, linesearch, gradients=FiniteDifference.gradients, hessian=FiniteDifference.hessian):
-        x = self.guess
+    def optimize(self, method, linesearch, x0, gradients=FiniteDifference.gradients, hessian=FiniteDifference.hessian):
+        self.guess = x0
+        x = x0
         self.x_list.append(x)
         g_list = []
         function = self.function
