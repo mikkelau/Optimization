@@ -56,6 +56,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
                 break
             else:
                 alpha1 = alpha4
+                f1 = f4
                 alpha4 = sigma*alpha4
         first = False
     
@@ -68,7 +69,7 @@ def pinpoint(alpha1, alpha4, f_current, f1, f4, slope_current, mu1, mu2, functio
         
         if alpha2==None:
             # calulate first interior point
-            alpha2 = (alpha4-alpha1)/(1+phi)
+            alpha2 = alpha1+(alpha4-alpha1)/(1+phi)
             X2 = X+alpha2*p_dir
             f2 = function(X2)
             # check if it satisfies the first wolfe condition
@@ -83,7 +84,7 @@ def pinpoint(alpha1, alpha4, f_current, f1, f4, slope_current, mu1, mu2, functio
                     break # nailed it
         if alpha3==None: # if not
             # calculate second interior point
-            alpha3 = (alpha2-alpha1)*(1+1/phi)
+            alpha3 = alpha1+(alpha2-alpha1)*(1+1/phi)
             X3 = X+alpha3*p_dir
             f3 = function(X3)
             # check if it satisfies the first wolfe condition
