@@ -16,8 +16,6 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
         
     mu1 = 1e-4
     mu2 = 0.9
-    phi = (1+5**0.5)/2
-    sigma = 1+phi
     alpha1 = 0.0
     
     alpha4 = alpha
@@ -57,7 +55,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
             else:
                 alpha1 = alpha4
                 f1 = f4
-                alpha4 = sigma*alpha4
+                alpha4 = 2*alpha4
         first = False
     
     return f_eval, g_eval, alpha
@@ -97,6 +95,16 @@ def pinpoint(alpha1, alpha4, f_current, f1, f4, slope_current, mu1, mu2, functio
                     g_p = g3
                     alpha_p = alpha3
                     break # nailed it
+        
+        # enforce minimum step. Sometimes the step can get too small, especially when using estimations of the gradient
+        if ((alpha4-alpha1) < (np.finfo(np.float32).eps)**(1/3)):
+            if (f2>f3):
+                X3 = X+alpha3*p_dir
+                return f3, gradients(X3, function), alpha3
+            else:
+                X2 = X+alpha2*p_dir
+                return f2, gradients(X2, function), alpha2
+            
         if (f2>f3):
             return pinpoint(alpha2, alpha4, f_current, f2, f4, slope_current,  mu1, mu2, function, gradients, X, p_dir, alpha2=alpha3, f2=f3)
         else:
