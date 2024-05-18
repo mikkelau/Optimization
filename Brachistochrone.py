@@ -6,6 +6,7 @@ Created on Tue Jan 31 19:36:02 2023
 """
 
 from math import sqrt
+import numpy as np
 
 upper_bounds = [1.0, 1.0]
 lower_bounds = [0.0, 0.0]
@@ -19,12 +20,13 @@ def function(Y):
     L = 1.0
     
     # add endpoints to the Y position vector
-    Y = list(Y)
-    Y.insert(0,H)
-    Y.append(0.0)
+    Y = np.array(Y)
+    Y = np.insert(Y,0,H)
+    Y = np.append(Y,0.0)
+    
     length = len(Y)
         
-    X = [0.0 + i*(L-0.0)/(length-1) for i in range(length)]
+    X = np.array([0.0 + i*(L-0.0)/(length-1) for i in range(length)])
     
     for idx in range(len(Y)-1):
         delx = X[idx+1]-X[idx]

@@ -48,14 +48,14 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
             break
         # how can it get stuck here? If alpha passed in is 0!
         else: # you are still moving downward at a high slope, extend your guess
-            # if the bounds were enforced, alpha2 is as big as it can get
+            # if the bounds were enforced, alpha4 is as big as it can get
             if (bounds_enforced == True): # take the alpha on the bounds
                 alpha = alpha4
                 break
             else:
                 alpha1 = alpha4
                 f1 = f4
-                alpha4 = 2*alpha4
+                alpha4 = 2*alpha4 # could extend by using phi, but testing showed that just doubling the step usually worked best
         first = False
     
     return f_eval, g_eval, alpha

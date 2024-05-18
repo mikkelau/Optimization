@@ -36,7 +36,6 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
         f_list = []
-
         
         function.counter = 0
         iters = 1

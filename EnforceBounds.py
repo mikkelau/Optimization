@@ -7,7 +7,6 @@ Created on Wed Oct 25 20:30:24 2023
 
 def enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds):
     bounds_enforced = False
-    alpha_new = alpha
     for i in range(len(X)):
         if (X[i]+alpha*p_dir[i] > upper_bounds[i]):
             # solve for the alpha that would land on the boundary

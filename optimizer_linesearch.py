@@ -8,6 +8,7 @@ Created on Tue Jan  3 15:32:14 2023
 import optimizer_gradients
 from numpy.linalg import norm
 import FiniteDifference
+import numpy as np
 
 class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters):
@@ -33,18 +34,37 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         while ((norm(g) > 1e-6) and (method.iters < max_iters)):
             
             # choose a search direction. should pass out a search direction and initial guess for alpha
-            p, alpha = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
+            p, alpha_init = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
             
             # linesearch
-            f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha, upper_bounds, lower_bounds)
+            f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds)
                 
             # check if alpha was forced to 0 (due to boundary enforcement)
             if (alpha == 0.0):
-                print('method got stuck on boundary')
-                break   
-               
-            # update x
-            x = x+[alpha*i for i in p]
+                # print('method got stuck on boundary')
+                
+                # travel along the boundary
+                xnew = x+[alpha_init*i for i in p]
+                # enforce bounds
+                for i in range(len(x)):
+                    if (xnew[i] > upper_bounds[i]):
+                        xnew[i] = upper_bounds[i]
+                    elif (xnew[i] < lower_bounds[i]):
+                        xnew[i] = lower_bounds[i]
+                        
+                if (norm(xnew-x) <  1e-6):
+                    print('method got stuck on boundary')
+                    break
+                
+                # update everything
+                alpha = np.dot(xnew-x,[alpha_init*i for i in p]) # the projection of the actual step direction in the p direction
+                x = xnew
+                f = function(x)
+                g = gradients(x,function)
+            
+            else:   
+                # update x
+                x = x+[alpha*i for i in p]
             
             # store the updated point and associated gradient
             self.x_list.append(x)
