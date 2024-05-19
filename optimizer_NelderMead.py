@@ -38,7 +38,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         f_list = []
         
         function.counter = 0
-        iters = 1
+        iters = 0
         
         n = len(x0)
         # create a simplex with edge length l
@@ -58,7 +58,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         for i in range(n):
             delta_simplex += np.linalg.norm(simplex[i]-simplex[n])
             
-        while (delta_simplex>tol):
+        while ((delta_simplex>tol) and (iters < max_iters)):
             alpha = 1
             # Order from the lowest (best) to the highest
             simplex = sorted(simplex, key=lambda x: function(x))
@@ -67,18 +67,19 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             f_worst = function(simplex[-1])
             f_secondworst = function(simplex[-2])
             f_list.append(f_best)
-            print(simplex[0],'\n')
+            # print(simplex[0],'\n')
             
             # the centroid excluding the worst point
+            summed = 0
             for i in range(n):
-                summed = simplex[i]
+                summed += simplex[i]
             x_c = 1/n*summed
             
             # reflection
             x_r = x_c+alpha*(x_c-simplex[n])
             f_r = function(x_r)
             
-            # is reflected point petter than the best?
+            # is reflected point better than the best?
             if f_r < f_best:
                 # expand
                 alpha *= 2
@@ -109,7 +110,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                         alpha *= -1
                         for j in range(1,n+1):
                             simplex[j] = simplex[0]+alpha*(simplex[j]-simplex[0])
-                else:
+                else: # reflected point is only better than the worst
                     # outside contraction
                     alpha *= 0.5
                     x_oc = x_c+alpha*(x_c-simplex[n])
