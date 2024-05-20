@@ -10,6 +10,8 @@ from MakeContourPlot import MakeContourPlot
 import matplotlib.pyplot as plt
 import numpy as np
 from math import sqrt
+from collections import OrderedDict
+
 
 class NelderMeadOptimizer(optimizer.Optimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters):
@@ -44,6 +46,8 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         # create a simplex with edge length l
         simplex = np.empty(shape=(n+1,n),dtype='float64')
         simplex[0] = x0
+        # create a dictionary to store vectors and their corresponding function values
+        point_to_value = {}
         # define l
         l = 1
         for i in range(1,n+1):
@@ -54,6 +58,11 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                 else:
                     s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)
             simplex[i] = simplex[0]+s
+        # populate the dictionary
+        for point in simplex:
+            point_to_value[tuple(point)] = function(point)
+        simplex_dict = point_to_value
+            
         delta_simplex = 0
         for i in range(n):
             delta_simplex += np.linalg.norm(simplex[i]-simplex[n])
@@ -61,11 +70,18 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         while ((delta_simplex>tol) and (iters < max_iters)):
             alpha = 1
             # Order from the lowest (best) to the highest
-            simplex = sorted(simplex, key=lambda x: function(x))
+            simplex_dict = {}
+            for point in simplex:
+                simplex_dict[tuple(point)] = point_to_value[tuple(point)]
+            simplex_dict = OrderedDict(sorted(simplex_dict.items(), key=lambda item: item[1]))
+            simplex = np.array([key for key in simplex_dict.keys()])
+            
+            # save the current best point
             self.x_list.append(simplex[0])
-            f_best = function(simplex[0])
-            f_worst = function(simplex[-1])
-            f_secondworst = function(simplex[-2])
+
+            f_best = list(simplex_dict.values())[0]
+            f_worst = list(simplex_dict.values())[-1]
+            f_secondworst = list(simplex_dict.values())[-2]
             f_list.append(f_best)
             # print(simplex[0],'\n')
             
@@ -76,16 +92,19 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             x_c = 1/n*summed
             
             # reflection
-            x_r = x_c+alpha*(x_c-simplex[n])
-            f_r = function(x_r)
-            
+            x_r = tuple(x_c+alpha*(x_c-simplex[n]))
+            if x_r not in point_to_value:
+                point_to_value[x_r] = function(x_r)
+            f_r = point_to_value[x_r]
             # is reflected point better than the best?
             if f_r < f_best:
                 # expand
                 alpha *= 2
-                x_e = x_c+alpha*(x_c-simplex[n])
+                x_e = tuple(x_c+alpha*(x_c-simplex[n]))
+                if x_e not in point_to_value:
+                    point_to_value[x_e] = function(x_e)
                 # is expanded point better than the best?
-                if function(x_e) < f_best:
+                if point_to_value[x_e] < f_best:
                     # accept expansion and replace worst point
                     simplex[n] = x_e
                 else:
@@ -100,9 +119,11 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                 if f_r > f_worst:
                     # inside contraction
                     alpha *= -0.5
-                    x_ic = x_c+alpha*(x_c-simplex[n])
+                    x_ic = tuple(x_c+alpha*(x_c-simplex[n]))
+                    if x_ic not in point_to_value:
+                        point_to_value[x_ic] = function(x_ic)
                     # is inside contraction better than the worst?
-                    if function(x_ic) < f_worst:
+                    if point_to_value[x_ic] < f_worst:
                         # accept inside contraction
                         simplex[n] = x_ic
                     else:
@@ -113,23 +134,39 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                 else: # reflected point is only better than the worst
                     # outside contraction
                     alpha *= 0.5
-                    x_oc = x_c+alpha*(x_c-simplex[n])
+                    x_oc = tuple(x_c+alpha*(x_c-simplex[n]))
+                    if x_oc not in point_to_value:
+                        point_to_value[x_oc] = function(x_oc)
                     # is contraction better than reflection?
-                    if function(x_oc) < f_r:
+                    if point_to_value[x_oc] < f_r:
                         # accept outside contraction
                         simplex[n] = x_oc
                     else:
                         # shrink
                         for j in range(1,n+1):
                             simplex[j] = simplex[0]+alpha*(simplex[j]-simplex[0])
+                            
+            # increment the iterator
             iters += 1
+            
+            # add the new point(s) to the master dictionary
+            for point in simplex:
+                if tuple(point) not in point_to_value:
+                    point_to_value[tuple(point)] = function(point)
+            
+            # re-calculate the convergence criteria
             delta_simplex = 0
             for i in range(n):
                 delta_simplex += np.linalg.norm(simplex[i]-simplex[n])
         
-        simplex = sorted(simplex, key=lambda x: function(x))
+        # Order from the lowest (best) to the highest
+        simplex_dict = {}
+        for point in simplex:
+            simplex_dict[tuple(point)] = point_to_value[tuple(point)]
+        simplex_dict = OrderedDict(sorted(simplex_dict.items(), key=lambda item: item[1]))
+        simplex = np.array([key for key in simplex_dict.keys()])
+        
         self.x_list.append(simplex[0])
-            
         self.iterations = iters
         self.function_calls = function.counter
         self.solution = simplex[0]
