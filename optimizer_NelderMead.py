@@ -7,36 +7,42 @@ Created on Fri May 17 10:51:08 2024
 
 import optimizer
 from MakeContourPlot import MakeContourPlot
-import matplotlib.pyplot as plt
 import numpy as np
 from math import sqrt
 from collections import OrderedDict
-
+import matplotlib.pyplot as plt
+import time
 
 class NelderMeadOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, plots=False):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.guess = []
         self.x_list = []
         self.f_list = []
         self.current_simplex = []
         self.simplex_list = []
+        self.tol = tol
+        self.plots = plots
         
-    def contour_plot(self):
+    def contour_plot(self,points):
         if len(self.guess) == 2:
-            MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
-            # plot the best point from each simplex
-            plt.plot([i[0] for i in self.x_list],[i[1] for i in self.x_list],c='red',marker='o',markerfacecolor='none')
+            # enable interactive mode
+            plt.ion()
+            fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
+            # plot the points that got passed in
+            line1, = plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
+            return fig,line1
         else:
-            print("Cannot create contour plot. Number of independent variables needs to be two.\n")
+            print("Cannot create contour plot. Number of independent variables needs to be two.\n")      
             
-    def optimize(self, x0, tol=1e-6):
+    def optimize(self, x0):
         self.guess = x0
         
         function = self.function
         max_iters = self.max_iters
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
+        tol = self.tol
         f_list = []
         
         function.counter = 0
@@ -66,6 +72,17 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         delta_simplex = 0
         for i in range(n):
             delta_simplex += np.linalg.norm(simplex[i]-simplex[n])
+            
+        # plot current simplex
+        if self.plots:
+            fig,line1 = self.contour_plot(np.vstack([simplex, simplex[0]]))
+            # plot the simplex
+            cfm = plt.get_current_fig_manager()
+            cfm.window.activateWindow()
+            cfm.window.raise_()
+            # to flush the GUI events
+            fig.canvas.flush_events()
+            time.sleep(0.1)
             
         while ((delta_simplex>tol) and (iters < max_iters)):
             alpha = 1
@@ -153,6 +170,17 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             for point in simplex:
                 if tuple(point) not in point_to_value:
                     point_to_value[tuple(point)] = function(point)
+                    
+            # plot current simplex
+            if self.plots:
+                # updating the values of the simplex
+                line1.set_xdata([i[0] for i in np.vstack([simplex, simplex[0]])])
+                line1.set_ydata([i[1] for i in np.vstack([simplex, simplex[0]])])
+                # re-drawing the figure
+                fig.canvas.draw()
+                # to flush the GUI events
+                fig.canvas.flush_events()
+                time.sleep(0.1)
             
             # re-calculate the convergence criteria
             delta_simplex = 0

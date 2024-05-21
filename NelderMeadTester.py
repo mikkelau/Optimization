@@ -32,11 +32,12 @@ numRuns = 1
 
 for runNum in range(numRuns):
     # initial guess
-    guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
+    # guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
+    guess = array([-2,2])
     # print('initial guess:',guess)
 
     # initialize the optimizer
-    neldermead_optimizer = NelderMeadOptimizer(function, upper_bounds, lower_bounds, max_iters)
+    neldermead_optimizer = NelderMeadOptimizer(function, upper_bounds, lower_bounds, max_iters,plots=True)
     
     # call optimize
     neldermead_optimizer.optimize(guess)
@@ -48,8 +49,4 @@ for runNum in range(numRuns):
     neldermead_optimizer.convergence_plot()
     
     # make a contour plot
-    neldermead_optimizer.contour_plot()
-    
-
-
-
+    fig = neldermead_optimizer.contour_plot(neldermead_optimizer.x_list)

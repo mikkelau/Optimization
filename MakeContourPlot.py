@@ -33,8 +33,9 @@ def MakeContourPlot(function,upper_lims,lower_lims):
     # plot colorbar
     pcm = ax.get_children()[2] #get the mappable, the 1st and the 2nd are the x and y axes
     plt.colorbar(pcm,ax=ax)   
-    
+        
     # ax.set_title('Filled Contour Plot')
     # ax.set_xlabel('feature_x')
     # ax.set_ylabel('feature_y')
-      
+    
+    return fig
