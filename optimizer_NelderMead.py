@@ -12,6 +12,7 @@ from math import sqrt
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import time
+from numpy.linalg import norm
 
 class NelderMeadOptimizer(optimizer.Optimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, plots=False):
@@ -52,18 +53,33 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         # create a simplex with edge length l
         simplex = np.empty(shape=(n+1,n),dtype='float64')
         simplex[0] = x0
-        # create a dictionary to store vectors and their corresponding function values
-        point_to_value = {}
         # define l
         l = 1
-        for i in range(1,n+1):
-            s = np.empty(2,dtype='float64')
-            for j in range(n):
-                if j==i:
-                    s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)+l/sqrt(2)
-                else:
-                    s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)
-            simplex[i] = simplex[0]+s
+        if n==2:
+            # determine the centroid of the search space
+            cent = [(lower_bounds[i]+upper_bounds[i])/2 for i in range(len(upper_bounds))]
+            # find the direction of the centroid from x0
+            p = np.array([j-i for i,j in zip(x0,cent)])
+            c_pts = x0+np.array([i/norm(p) for i in p])*sqrt(3)/2
+            simplex[1,0] = c_pts[0]+p[1]/norm(p)*l/2
+            simplex[1,1] = c_pts[1]-p[0]/norm(p)*l/2
+            simplex[2,0] = c_pts[0]-p[1]/norm(p)*l/2
+            simplex[2,1] = c_pts[1]+p[0]/norm(p)*l/2
+        else:
+            for i in range(1,n+1):
+                s = np.empty(2,dtype='float64')
+                for j in range(n):
+                    if j==i:
+                        s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)+l/sqrt(2)
+                    else:
+                        s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)
+                simplex[i] = simplex[0]+s
+            
+        # create a dictionary to store vectors and their corresponding function values
+        point_to_value = {}
+        # determine the centroid of the search space
+        c = [(lower_bounds[i]+upper_bounds[i])/2 for i in range(len(upper_bounds))]
+        
         # populate the dictionary
         for point in simplex:
             point_to_value[tuple(point)] = function(point)
