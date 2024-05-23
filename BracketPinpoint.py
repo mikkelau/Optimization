@@ -9,7 +9,7 @@ from Cubic_Interp import interpolate, plot_linesearch
 # from Quadratic_Interp import interpolate, plot_linesearch
 #from Bisect import interpolate
 import numpy as np
-from EnforceBounds import enforce_bounds
+from optimizer_linesearch import LineSearchOptimizer
 
 def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds): 
     # g is the gradient at current point
@@ -29,7 +29,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     first = True
     while True:
         # enforce bounds      
-        alpha2, bounds_enforced = enforce_bounds(alpha2, X, p_dir, upper_bounds, lower_bounds)
+        alpha2, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha2, X, p_dir, upper_bounds, lower_bounds)
                     
         Xnew = X+alpha2*p_dir
         f2 = function(Xnew)

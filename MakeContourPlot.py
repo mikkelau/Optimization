@@ -29,10 +29,17 @@ def MakeContourPlot(function,upper_lims,lower_lims):
         ax.contourf(X, Y, Z, 15, locator=ticker.LogLocator())
     else:
         ax.contourf(X, Y, Z, 15)
-    
+        
+    # set the axes to be on the same scale
+    ax.set_aspect('equal', adjustable='box')
+
     # plot colorbar
     pcm = ax.get_children()[2] #get the mappable, the 1st and the 2nd are the x and y axes
     plt.colorbar(pcm,ax=ax)   
+    
+    cfm = plt.get_current_fig_manager()
+    cfm.window.activateWindow()
+    cfm.window.raise_()
         
     # ax.set_title('Filled Contour Plot')
     # ax.set_xlabel('feature_x')

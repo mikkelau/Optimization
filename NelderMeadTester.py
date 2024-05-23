@@ -37,7 +37,7 @@ for runNum in range(numRuns):
     # print('initial guess:',guess)
 
     # initialize the optimizer
-    neldermead_optimizer = NelderMeadOptimizer(function, upper_bounds, lower_bounds, max_iters,plots=True)
+    neldermead_optimizer = NelderMeadOptimizer(function, upper_bounds, lower_bounds, max_iters,plot_simplex=True)
     
     # call optimize
     neldermead_optimizer.optimize(guess)

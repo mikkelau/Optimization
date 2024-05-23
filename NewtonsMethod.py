@@ -6,7 +6,7 @@ Created on Fri Jul 22 19:54:31 2022
 """
 
 from LU_factor import LU_factor
-from EnforceBounds import enforce_bounds
+from optimizer_linesearch import LineSearchOptimizer
 
 def method(g, x, alpha, hessian, function, gradients): # g is a list, not an array
 
@@ -25,7 +25,7 @@ def linesearch(f, function, g, gradients, x, p, alpha, upper_bounds, lower_bound
     alpha = 1.0
     
     # enforce bounds
-    alpha, bounds_enforced = enforce_bounds(alpha, x, p, upper_bounds, lower_bounds)
+    alpha, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha, x, p, upper_bounds, lower_bounds)
     
     # update x
     Xnew = x+alpha*p

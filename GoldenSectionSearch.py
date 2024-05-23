@@ -6,7 +6,7 @@ Created on Fri Oct 27 08:57:52 2023
 """
 
 import numpy as np
-from EnforceBounds import enforce_bounds
+from optimizer_linesearch import LineSearchOptimizer
 
 def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds): 
     # g is the gradient at current point
@@ -26,7 +26,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     # bracket
     while True:
         # enforce bounds      
-        alpha4, bounds_enforced = enforce_bounds(alpha4, X, p_dir, upper_bounds, lower_bounds)
+        alpha4, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha4, X, p_dir, upper_bounds, lower_bounds)
                     
         Xnew = X+alpha4*p_dir
         f4 = function(Xnew)

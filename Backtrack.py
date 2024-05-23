@@ -5,7 +5,7 @@ Created on Fri Jul 22 17:11:42 2022
 @author: mikke
 """
 import numpy as np
-from EnforceBounds import enforce_bounds
+from optimizer_linesearch import LineSearchOptimizer
 
 def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds): 
     # g is the gradient at current X
@@ -17,7 +17,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     rho = 0.5
     
     # enforce bounds      
-    alpha, bounds_enforced = enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds)
+    alpha, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds)
                 
     # if alpha is less than the minimum step, define it as 0
     if ((alpha < (np.finfo(np.float32).eps)**(1/3)) and (bounds_enforced == True)): # minimum step defined as epsilon^0.33

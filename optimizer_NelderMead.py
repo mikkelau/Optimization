@@ -15,7 +15,7 @@ import time
 from numpy.linalg import norm
 
 class NelderMeadOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, plots=False):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, plot_simplex=False):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.guess = []
         self.x_list = []
@@ -23,7 +23,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         self.current_simplex = []
         self.simplex_list = []
         self.tol = tol
-        self.plots = plots
+        self.plot_simplex = plot_simplex
         
     def contour_plot(self,points):
         if len(self.guess) == 2:
@@ -34,7 +34,9 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             line1, = plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
             return fig,line1
         else:
-            print("Cannot create contour plot. Number of independent variables needs to be two.\n")      
+            print("Cannot create contour plot. Number of independent variables needs to be two.\n")  
+            
+    # def enforce_bounds(simplex):
             
     def optimize(self, x0):
         self.guess = x0
@@ -54,17 +56,19 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         simplex = np.empty(shape=(n+1,n),dtype='float64')
         simplex[0] = x0
         # define l
-        l = 1
+        ranges = np.array([i-j for i,j in zip(upper_bounds,lower_bounds)])
+        l = 0.25*min(ranges) # this is arbitrary, it might be good to determine this using some other criteria
         if n==2:
             # determine the centroid of the search space
             cent = [(lower_bounds[i]+upper_bounds[i])/2 for i in range(len(upper_bounds))]
             # find the direction of the centroid from x0
             p = np.array([j-i for i,j in zip(x0,cent)])
-            c_pts = x0+np.array([i/norm(p) for i in p])*sqrt(3)/2
-            simplex[1,0] = c_pts[0]+p[1]/norm(p)*l/2
-            simplex[1,1] = c_pts[1]-p[0]/norm(p)*l/2
-            simplex[2,0] = c_pts[0]-p[1]/norm(p)*l/2
-            simplex[2,1] = c_pts[1]+p[0]/norm(p)*l/2
+            # determine the location of the centroid of the remaining two points,
+            # constraining it to be in the direction of the centroid of the search space
+            c_pts = x0+np.array([i/norm(p) for i in p])*sqrt(n*(n+1)/2)/n
+            simplex[1] = [c_pts[0]+p[1]/norm(p)*l/2,c_pts[1]-p[0]/norm(p)*l/2]
+            simplex[2] = [c_pts[0]-p[1]/norm(p)*l/2,c_pts[1]+p[0]/norm(p)*l/2]
+            # is there a way to generalize this for a tetrehedron or hypertetrahedron?
         else:
             for i in range(1,n+1):
                 s = np.empty(2,dtype='float64')
@@ -74,11 +78,19 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                     else:
                         s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)
                 simplex[i] = simplex[0]+s
+                
+        # plot current simplex
+        if self.plot_simplex:
+            fig,line1 = self.contour_plot(np.vstack([simplex, simplex[0]]))
+            # to flush the GUI events
+            fig.canvas.flush_events()
+            time.sleep(0.1)
+
+            # reset the function counter to 0 so that making the contour plot isn't counted
+            function.counter = 0
             
         # create a dictionary to store vectors and their corresponding function values
         point_to_value = {}
-        # determine the centroid of the search space
-        c = [(lower_bounds[i]+upper_bounds[i])/2 for i in range(len(upper_bounds))]
         
         # populate the dictionary
         for point in simplex:
@@ -88,17 +100,6 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         delta_simplex = 0
         for i in range(n):
             delta_simplex += np.linalg.norm(simplex[i]-simplex[n])
-            
-        # plot current simplex
-        if self.plots:
-            fig,line1 = self.contour_plot(np.vstack([simplex, simplex[0]]))
-            # plot the simplex
-            cfm = plt.get_current_fig_manager()
-            cfm.window.activateWindow()
-            cfm.window.raise_()
-            # to flush the GUI events
-            fig.canvas.flush_events()
-            time.sleep(0.1)
             
         while ((delta_simplex>tol) and (iters < max_iters)):
             alpha = 1
@@ -188,7 +189,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                     point_to_value[tuple(point)] = function(point)
                     
             # plot current simplex
-            if self.plots:
+            if self.plot_simplex:
                 # updating the values of the simplex
                 line1.set_xdata([i[0] for i in np.vstack([simplex, simplex[0]])])
                 line1.set_ydata([i[1] for i in np.vstack([simplex, simplex[0]])])
