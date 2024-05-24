@@ -36,7 +36,26 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         else:
             print("Cannot create contour plot. Number of independent variables needs to be two.\n")  
             
-    # def enforce_bounds(simplex):
+    def enforce_bounds(self, X, x_c, alpha):
+        bounds_enforced = False
+        p_dir = (x_c-X)
+        for i in range(len(X)):
+            if (x_c[i]+alpha*p_dir[i] > self.upper_bounds[i]):
+                # solve for the alpha that would land on the boundary
+                alpha_new = (self.upper_bounds[i]-x_c[i])/p_dir[i]
+                if (alpha_new < alpha): # this check is needed to make sure we aren't overwriting an alpha that was already solved for when checking a different bound
+                    alpha = alpha_new
+                    bounds_enforced = True
+            elif (x_c[i]+alpha*p_dir[i] < self.lower_bounds[i]):
+                # solve for the alpha that would land on the boundary
+                alpha_new = (self.lower_bounds[i]-x_c[i])/p_dir[i]
+                if (alpha_new < alpha): # this check is needed to make sure we aren't overwriting an alpha that was already solved for when checking a different bound
+                    alpha = alpha_new
+                    bounds_enforced = True
+                    
+        Xnew = tuple(x_c+alpha*(x_c-X))
+        
+        return Xnew, alpha, bounds_enforced
             
     def optimize(self, x0):
         self.guess = x0
@@ -65,18 +84,25 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             p = np.array([j-i for i,j in zip(x0,cent)])
             # determine the location of the centroid of the remaining two points,
             # constraining it to be in the direction of the centroid of the search space
-            c_pts = x0+np.array([i/norm(p) for i in p])*sqrt(n*(n+1)/2)/n
+            c_pts = x0+np.array([i/norm(p) for i in p])*l*sqrt(n*(n+1)/2)/n
             simplex[1] = [c_pts[0]+p[1]/norm(p)*l/2,c_pts[1]-p[0]/norm(p)*l/2]
             simplex[2] = [c_pts[0]-p[1]/norm(p)*l/2,c_pts[1]+p[0]/norm(p)*l/2]
             # is there a way to generalize this for a tetrehedron or hypertetrahedron?
         else:
             for i in range(1,n+1):
                 s = np.empty(2,dtype='float64')
-                for j in range(n):
+                j = 0
+                while j < n:
                     if j==i:
                         s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)+l/sqrt(2)
                     else:
                         s[j] = (l/n*sqrt(2))*(sqrt(n+1)-1)
+                    # ensure no starting points are outside of bounds
+                    if (simplex[0,j]+s[j] > upper_bounds[j]) or (simplex[0,j]+s[j] < lower_bounds[j]):
+                        l *= 0.9
+                        j = 0
+                    else:
+                        j += 1
                 simplex[i] = simplex[0]+s
                 
         # plot current simplex
@@ -84,7 +110,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             fig,line1 = self.contour_plot(np.vstack([simplex, simplex[0]]))
             # to flush the GUI events
             fig.canvas.flush_events()
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             # reset the function counter to 0 so that making the contour plot isn't counted
             function.counter = 0
@@ -126,24 +152,29 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             x_c = 1/n*summed
             
             # reflection
-            x_r = tuple(x_c+alpha*(x_c-simplex[n]))
+            x_r, alpha, bounds_enforced = self.enforce_bounds(simplex[n], x_c, alpha)
+            
             if x_r not in point_to_value:
                 point_to_value[x_r] = function(x_r)
             f_r = point_to_value[x_r]
             # is reflected point better than the best?
             if f_r < f_best:
-                # expand
-                alpha *= 2
-                x_e = tuple(x_c+alpha*(x_c-simplex[n]))
-                if x_e not in point_to_value:
-                    point_to_value[x_e] = function(x_e)
-                # is expanded point better than the best?
-                if point_to_value[x_e] < f_best:
-                    # accept expansion and replace worst point
-                    simplex[n] = x_e
-                else:
+                if bounds_enforced:
                     # accept reflection
                     simplex[n] = x_r
+                else:
+                    # expand
+                    alpha *= 2
+                    x_e, alpha, bounds_enforced = self.enforce_bounds(simplex[n], x_c, alpha)
+                    if x_e not in point_to_value:
+                        point_to_value[x_e] = function(x_e)
+                    # is expanded point better than the best?
+                    if point_to_value[x_e] < f_best:
+                        # accept expansion and replace worst point
+                        simplex[n] = x_e
+                    else:
+                        # accept reflection
+                        simplex[n] = x_r
             # is reflected point better than the second worst?
             elif f_r <= f_secondworst:
                 # accept reflected point
@@ -152,7 +183,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                 # is reflected point worse that the worst?
                 if f_r > f_worst:
                     # inside contraction
-                    alpha *= -0.5
+                    alpha = -0.5
                     x_ic = tuple(x_c+alpha*(x_c-simplex[n]))
                     if x_ic not in point_to_value:
                         point_to_value[x_ic] = function(x_ic)
@@ -162,9 +193,8 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                         simplex[n] = x_ic
                     else:
                         # shrink
-                        alpha *= -1
                         for j in range(1,n+1):
-                            simplex[j] = simplex[0]+alpha*(simplex[j]-simplex[0])
+                            simplex[j] = simplex[0]+0.5*(simplex[j]-simplex[0])
                 else: # reflected point is only better than the worst
                     # outside contraction
                     alpha *= 0.5
@@ -178,7 +208,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                     else:
                         # shrink
                         for j in range(1,n+1):
-                            simplex[j] = simplex[0]+alpha*(simplex[j]-simplex[0])
+                            simplex[j] = simplex[0]+0.5*(simplex[j]-simplex[0])
                             
             # increment the iterator
             iters += 1
