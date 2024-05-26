@@ -21,7 +21,6 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         self.x_list = []
         self.f_list = []
         self.current_simplex = []
-        self.simplex_list = []
         self.tol = tol
         self.plot_simplex = plot_simplex
         
@@ -90,7 +89,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             # is there a way to generalize this for a tetrehedron or hypertetrahedron?
         else:
             for i in range(1,n+1):
-                s = np.empty(2,dtype='float64')
+                s = np.empty(n,dtype='float64')
                 j = 0
                 while j < n:
                     if j==i:
@@ -106,16 +105,16 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                 simplex[i] = simplex[0]+s
                 
         # plot current simplex
-        if self.plot_simplex:
+        if self.plot_simplex and n==2:
             fig,line1 = self.contour_plot(np.vstack([simplex, simplex[0]]))
             # to flush the GUI events
             fig.canvas.flush_events()
-            time.sleep(0.5)
+            time.sleep(0.3)
 
             # reset the function counter to 0 so that making the contour plot isn't counted
             function.counter = 0
             
-        # create a dictionary to store vectors and their corresponding function values
+        # create a dictionary to store points and their corresponding function values
         point_to_value = {}
         
         # populate the dictionary
@@ -219,7 +218,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                     point_to_value[tuple(point)] = function(point)
                     
             # plot current simplex
-            if self.plot_simplex:
+            if self.plot_simplex and n==2:
                 # updating the values of the simplex
                 line1.set_xdata([i[0] for i in np.vstack([simplex, simplex[0]])])
                 line1.set_ydata([i[1] for i in np.vstack([simplex, simplex[0]])])
@@ -240,6 +239,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             simplex_dict[tuple(point)] = point_to_value[tuple(point)]
         simplex_dict = OrderedDict(sorted(simplex_dict.items(), key=lambda item: item[1]))
         simplex = np.array([key for key in simplex_dict.keys()])
+        f_list.append(list(simplex_dict.values())[0])
         
         self.x_list.append(simplex[0])
         self.iterations = iters

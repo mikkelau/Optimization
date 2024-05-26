@@ -7,7 +7,7 @@ from optimizer_NelderMead import NelderMeadOptimizer
 from numpy import array
 from random import random, seed
 
-from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
+from BeanFunction import function, upper_bounds, lower_bounds, f_opt, f_opt_tol
 # from Brachistochrone import function, upper_bounds, lower_bounds
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian # has local minima
