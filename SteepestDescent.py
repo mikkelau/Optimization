@@ -15,7 +15,7 @@ def method(g, x, alpha, hessian, function, gradients):
     if (method.iters == 0):
         alpha = 1 # this is totally arbitrary, not sure what a good size is
     else:
-        alpha = alpha*(np.dot(method.g_old, method.p_old)/np.dot(g, p))
+        alpha = alpha*abs((np.dot(method.g_old, method.p_old)/np.dot(g, p)))
 
     # update internal quantities
     method.p_old = p
