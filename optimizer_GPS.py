@@ -107,6 +107,13 @@ class GPSOptimizer(optimizer.Optimizer):
                     
                     s = x0 + delta*D[i]
                     
+                    # enforce bounds
+                    for j in range(len(s)):
+                        if s[j] > upper_bounds[j]:
+                            s[j] = upper_bounds[j]
+                        elif s[j] < lower_bounds[j]:
+                            s[j] = lower_bounds[j]
+                    
                     # check if the new point has already been evaluated
                     if tuple(s) not in point_to_value:
                         point_to_value[tuple(s)] = function(s)
