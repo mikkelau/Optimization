@@ -10,10 +10,10 @@ import numpy as np
 
 def method(g, x, alpha, hessian, function, gradients): # g is a list, not an array
     
-    if (method.iters == 0) or (abs(np.dot(g, method.g_old)/np.dot(g, g)) >= 0.1):
+    if (method.iters%2 == 0):
         p = np.array([-1*i/norm(g) for i in g])
     else:
-        print('utilized beta')
+        # print('utilized beta')
         # Fletcher–Reeves formula
         # beta = sum([i*j for (i, j) in zip(g, g)])/sum([i*j for (i, j) in zip(method.g_old, method.g_old)]) 
         

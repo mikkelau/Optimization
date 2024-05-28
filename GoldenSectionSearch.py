@@ -15,7 +15,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     #print('alpha:', alpha)
         
     mu1 = 1e-4
-    mu2 = 0.9
+    mu2 = 0.7
     alpha1 = 0.0
     
     alpha4 = alpha
