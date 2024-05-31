@@ -135,5 +135,5 @@ class GPSOptimizer(optimizer.Optimizer):
         self.iterations = iters
         self.function_calls = function.counter
         self.solution = x0
-        self.function_value = function(x0)
+        self.function_value = point_to_value[tuple(x0)]
         self.convergence = f_list

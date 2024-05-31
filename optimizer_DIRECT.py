@@ -21,7 +21,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
         self.tol = tol
         
     def contour_plot(self,points):
-        if len(self.guess) == 2:
+        if len(self.upper_bounds) == 2:
             # enable interactive mode
             plt.ion()
             fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
@@ -31,14 +31,14 @@ class DIRECTOptimizer(optimizer.Optimizer):
         else:
             print("Cannot create contour plot. Number of independent variables needs to be two.\n")  
             
-    def find_convex_hull(pt_dict):
+    def find_convex_hull(self, pt_dict):
         # Starting with the point with the lowest distance and best fitness,
         # draw lines to all the minimum points at each distance greater than that of the current point.
         # The other minimum point that results in the lowest slope is a potentially optimal hyperrectangle, and becomes your new starting point.
         # repeat until there are no distances greater than that of your current point.
         # the lowest point at the smallest distance, and the lowest point at the greatest distance will always be potentially optimal hyperrectangles.
         
-        S = {}
+        S = []
 
         # sort the dictionary by distance value
         pt_dict2 = {}
@@ -60,13 +60,14 @@ class DIRECTOptimizer(optimizer.Optimizer):
                     minval = pt_dict2[pt][0]
         
             # this contains the best point at every d value
-            dist_dict[val] = np.array([pt_dict2[best_pt][0],best_pt])
+            dist_dict[val] = np.array([pt_dict2[best_pt][0],best_pt],dtype=object)
             
-        dist_dict = OrderedDict(sorted(S.items()))
+        dist_dict = OrderedDict(sorted(dist_dict.items()))
         
         while len(dist_vals) > 1:
             d = dist_vals.pop(0)
-            S[dist_dict[d][1]] = pt_dict[dist_dict[d][1]]
+            # S[dist_dict[d][1]] = pt_dict[dist_dict[d][1]]
+            S.append(dist_dict[d][1])
             slope = (dist_dict[dist_vals[0]][0]-dist_dict[d][0])/(dist_vals[0]-d) # rise/run
             keep_dist = dist_vals[0]
             for dist in dist_vals:
@@ -77,7 +78,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
             dist_vals = dist_vals[dist_vals.index(keep_dist):]
         
         # grab the last point
-        S[dist_dict[dist_vals[-1]][1]] = pt_dict[dist_dict[dist_vals[-1]][1]]                   
+        S.append(np.array(dist_dict[dist_vals[-1]][1]))                
         
         return S
             
@@ -101,32 +102,61 @@ class DIRECTOptimizer(optimizer.Optimizer):
         # make a dictionary where each point is the key, and the value is a vector or list containing fitness and edge lengths (d can be derived from edge lengths)
         pt_dict = {}
         
-        pt_dict[tuple(cent)] = np.array([function(cent),np.array([upper-lower for upper,lower in zip(upper_bounds,lower_bounds)])])
+        f_min = function(cent)
+        x_best = cent
+        pt_dict[tuple(cent)] = np.array([f_min,np.array([upper-lower for upper,lower in zip(upper_bounds,lower_bounds)])],dtype=object)
         
-        # each point needs to have a fitness and a distance associated with it
-        # algorithm: Starting with the point with the lowest distance and best fitness, draw a line to the best point with the next highest distance value.
-        # If no points are under that line, it is a potentially optimal hyperrectangle, and make that your new starting point. (just test the lowest points at each greater distance)
-        # Otherwise, it is not a potentially optimal hyperrectangle, so try the lowest point at the next higher distance. 
-        # Repeat until you have tested all the distances.
+        min_dist = norm(pt_dict[tuple(cent)][1])
         
-        # another idea: from your starting point, draw lines to all the minimum points at each distance greater than that of the current point.
-        # The other minimum point that results in the lowest slope is  a potentially optimal hyperrectangle, and becomes your new starting point.
-        # repeat until there are no distances greater than that of your current point.
-        # this is functionally equivalent to the above, but testing slope is potentially faster/easier
-        
-        # the lowest point at the smallest distance, and the lowest point at the greatest distance will always be potentially optimal hyperrectangles
-        
-        
-        
-        while ((min(d) > self.tol) and (iters < max_iters)):
+        while ((min_dist > self.tol) and (iters < max_iters)):
+            self.x_list.append(x_best)
+            f_list.append(f_min)
             
             # Find set S of potentially optimal hyperrectangles
-            S = find_convex_hull(pt_dict)
+            S = self.find_convex_hull(pt_dict)
             
             for pt in S:
-                # find the side of dimensions with the maximum side length.
+                # find the set of dimensions with the maximum side length.
+                split_dim = np.where(pt_dict[tuple(pt)][1]==max(pt_dict[tuple(pt)][1]))[0]
                 # break ties by selecting the search dimension that has been divided the least over the history of the search.
-                # If there are still multiple dimensions in the selection, simply select the one with the lowest index
-                pt_dict[tuple(pt)]
-            
+                if len(split_dim > 1):
+                    subset_t = np.array([t[i] for i in split_dim])
+                    split_dim_idx = np.where(subset_t==min(subset_t))[0]
+                    # If there are still multiple dimensions in the selection, simply select the one with the lowest index
+                    split_dim = split_dim[split_dim_idx[0]]
+                    
+                # Divide the rectangle into thirds along dimension i, creating two new points
+                pt_dict[tuple(pt)][1][split_dim] /= 3
+                
+                pt1 = pt.copy()
+                pt1[split_dim] += pt_dict[tuple(pt)][1][split_dim]
+                f1 = function(pt1)
+                pt_dict[tuple(pt1)] = np.array([f1,pt_dict[tuple(pt)][1]],dtype=object)
+                
+                pt2 = pt.copy()
+                pt2[split_dim] -= pt_dict[tuple(pt)][1][split_dim]
+                f2 = function(pt2)
+                pt_dict[tuple(pt2)] = np.array([f2,pt_dict[tuple(pt)][1]],dtype=object)
+                
+                # increment the dimension split counter
+                t[split_dim] += 1
+                    
+                # update f_min, min_dist based on new points   
+                if norm(pt_dict[tuple(pt)][1]) < min_dist:
+                    min_dist = norm(pt_dict[tuple(pt)][1])
+                if f1 < f_min:
+                    f_min = f1
+                    x_best = pt1
+                if f2 < f_min:
+                    f_min = f2
+                    x_best = pt2
+
             iters += 1
+            
+        f_list.append(f_min)
+        self.x_list.append(x_best)
+        self.iterations = iters
+        self.function_calls = function.counter
+        self.solution = x_best
+        self.function_value = f_min
+        self.convergence = f_list
