@@ -12,6 +12,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 from scipy.stats import qmc
 from numpy.linalg import norm
+import copy
 
 class DIRECTOptimizer(optimizer.Optimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6):
@@ -67,7 +68,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
         while len(dist_vals) > 1:
             d = dist_vals.pop(0)
             # S[dist_dict[d][1]] = pt_dict[dist_dict[d][1]]
-            S.append(dist_dict[d][1])
+            S.append(np.array(dist_dict[d][1]))
             slope = (dist_dict[dist_vals[0]][0]-dist_dict[d][0])/(dist_vals[0]-d) # rise/run
             keep_dist = dist_vals[0]
             for dist in dist_vals:
@@ -106,7 +107,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
         x_best = cent
         pt_dict[tuple(cent)] = np.array([f_min,np.array([upper-lower for upper,lower in zip(upper_bounds,lower_bounds)])],dtype=object)
         
-        min_dist = norm(pt_dict[tuple(cent)][1])
+        min_dist = norm(pt_dict[tuple(cent)][1])/2
         
         while ((min_dist > self.tol) and (iters < max_iters)):
             self.x_list.append(x_best)
@@ -119,7 +120,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
                 # find the set of dimensions with the maximum side length.
                 split_dim = np.where(pt_dict[tuple(pt)][1]==max(pt_dict[tuple(pt)][1]))[0]
                 # break ties by selecting the search dimension that has been divided the least over the history of the search.
-                if len(split_dim > 1):
+                if len(split_dim) > 1:
                     subset_t = np.array([t[i] for i in split_dim])
                     split_dim_idx = np.where(subset_t==min(subset_t))[0]
                     # If there are still multiple dimensions in the selection, simply select the one with the lowest index
@@ -128,22 +129,22 @@ class DIRECTOptimizer(optimizer.Optimizer):
                 # Divide the rectangle into thirds along dimension i, creating two new points
                 pt_dict[tuple(pt)][1][split_dim] /= 3
                 
-                pt1 = pt.copy()
+                pt1 = pt.copy() # deep copy
                 pt1[split_dim] += pt_dict[tuple(pt)][1][split_dim]
                 f1 = function(pt1)
-                pt_dict[tuple(pt1)] = np.array([f1,pt_dict[tuple(pt)][1]],dtype=object)
+                pt_dict[tuple(pt1)] = np.array([f1,copy.deepcopy(pt_dict[tuple(pt)][1])],dtype=object)
                 
-                pt2 = pt.copy()
+                pt2 = pt.copy() # deep copy
                 pt2[split_dim] -= pt_dict[tuple(pt)][1][split_dim]
                 f2 = function(pt2)
-                pt_dict[tuple(pt2)] = np.array([f2,pt_dict[tuple(pt)][1]],dtype=object)
+                pt_dict[tuple(pt2)] = np.array([f2,copy.deepcopy(pt_dict[tuple(pt)][1])],dtype=object)
                 
                 # increment the dimension split counter
                 t[split_dim] += 1
                     
                 # update f_min, min_dist based on new points   
-                if norm(pt_dict[tuple(pt)][1]) < min_dist:
-                    min_dist = norm(pt_dict[tuple(pt)][1])
+                if norm(pt_dict[tuple(pt)][1])/2 < min_dist:
+                    min_dist = norm(pt_dict[tuple(pt)][1])/2
                 if f1 < f_min:
                     f_min = f1
                     x_best = pt1
@@ -153,6 +154,25 @@ class DIRECTOptimizer(optimizer.Optimizer):
 
             iters += 1
             
+        # plot the final complex hull
+        scatter_x = []
+        scatter_y = []
+        for value in pt_dict.values():
+            scatter_x.append(norm(value[1])/2)
+            scatter_y.append(value[0])
+        plt.figure()
+        plt.xscale("log")
+        plt.scatter(scatter_x,scatter_y)
+        plt.grid()
+        plt.xlabel('d',fontweight='bold')
+        plt.ylabel('f',fontweight='bold')
+        
+        S = self.find_convex_hull(pt_dict)
+        # for pt in S:
+            
+        # plt.plot(S)
+        
+        
         f_list.append(f_min)
         self.x_list.append(x_best)
         self.iterations = iters
