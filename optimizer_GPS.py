@@ -76,6 +76,13 @@ class GPSOptimizer(optimizer.Optimizer):
         function.counter = 0
         iters = 0
         
+        # enforce bounds in initial guess
+        for i in range(len(x0)):
+            if x0[i] > upper_bounds[i]:
+                x0[i] = upper_bounds[i]
+            elif x0[i] < lower_bounds[i]:
+                x0[i] = lower_bounds[i]
+        
         n = len(x0)
         
         # define the spanning set D

@@ -34,8 +34,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
     
     def optimize(self, method, linesearch, x0, gradients=FiniteDifference.gradients, hessian=FiniteDifference.hessian):
         self.guess = x0
-        x = x0
-        self.x_list.append(x)
+        
         g_list = []
         function = self.function
         max_iters = self.max_iters
@@ -43,11 +42,22 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         lower_bounds = self.lower_bounds
         
         function.counter = 0
-        f = function(x)
-        g = gradients(x,function)
-        g_list.append(norm(g))
         method.iters = 0
+        
+        # enforce bounds in initial guess
+        for i in range(len(x0)):
+            if x0[i] > upper_bounds[i]:
+                x0[i] = upper_bounds[i]
+            elif x0[i] < lower_bounds[i]:
+                x0[i] = lower_bounds[i]
+        
+        self.x_list.append(x0)
+        
+        f = function(x0)
+        g = gradients(x0,function)
+        g_list.append(norm(g))
         alpha = 1
+        x = x0
 
         while ((norm(g) > 1e-6) and (method.iters < max_iters)):
             

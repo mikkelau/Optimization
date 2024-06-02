@@ -69,6 +69,13 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         function.counter = 0
         iters = 0
         
+        # enforce bounds in initial guess
+        for i in range(len(x0)):
+            if x0[i] > upper_bounds[i]:
+                x0[i] = upper_bounds[i]
+            elif x0[i] < lower_bounds[i]:
+                x0[i] = lower_bounds[i]
+        
         n = len(x0)
         # create a simplex with edge length l
         simplex = np.empty(shape=(n+1,n),dtype='float64')
