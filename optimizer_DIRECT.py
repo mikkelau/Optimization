@@ -49,6 +49,11 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         dist_vals = sorted(set([val[1] for val in pt_dict2.values()]))
         
+        best_dist = norm(pt_dict[tuple(self.x_list[-1])][1])/2
+        
+        # get rid of any distances lower than the distance containing the best point
+        dist_vals = dist_vals[dist_vals.index(best_dist):]
+        
         dist_dict = {}
         # now, for each unique distance value, find the point with the best fitness
         for val in dist_vals:
@@ -67,7 +72,6 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         while len(dist_vals) > 1:
             d = dist_vals.pop(0)
-            # S[dist_dict[d][1]] = pt_dict[dist_dict[d][1]]
             S.append(np.array(dist_dict[d][1]))
             slope = (dist_dict[dist_vals[0]][0]-dist_dict[d][0])/(dist_vals[0]-d) # rise/run
             keep_dist = dist_vals[0]
@@ -155,23 +159,24 @@ class DIRECTOptimizer(optimizer.Optimizer):
             iters += 1
             
         # plot the final complex hull
+        S = self.find_convex_hull(pt_dict)
         scatter_x = []
         scatter_y = []
         for value in pt_dict.values():
             scatter_x.append(norm(value[1])/2)
             scatter_y.append(value[0])
+        x = []
+        y = []
+        for pt in S:
+            x.append(norm(pt_dict[tuple(pt)][1])/2)
+            y.append(pt_dict[tuple(pt)][0])
+        plt.plot(x,y)
         plt.figure()
         plt.xscale("log")
         plt.scatter(scatter_x,scatter_y)
         plt.grid()
         plt.xlabel('d',fontweight='bold')
         plt.ylabel('f',fontweight='bold')
-        
-        S = self.find_convex_hull(pt_dict)
-        # for pt in S:
-            
-        # plt.plot(S)
-        
         
         f_list.append(f_min)
         self.x_list.append(x_best)
