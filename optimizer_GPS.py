@@ -34,7 +34,7 @@ class GPSOptimizer(optimizer.Optimizer):
             plt.ion()
             fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
             # plot the points that got passed in
-            plt.scatter([i[0] for i in points],[i[1] for i in points],edgecolors='r',facecolors='none')
+            plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
             return fig
         else:
             print("Cannot create contour plot. Number of independent variables needs to be two.\n")  

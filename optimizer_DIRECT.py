@@ -27,7 +27,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
             plt.ion()
             fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
             # plot the points that got passed in
-            plt.scatter([i[0] for i in points],[i[1] for i in points],edgecolors='r',facecolors='none')
+            plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
             return fig
         else:
             print("Cannot create contour plot. Number of independent variables needs to be two.\n")  
@@ -38,52 +38,66 @@ class DIRECTOptimizer(optimizer.Optimizer):
         # The other minimum point that results in the lowest slope is a potentially optimal hyperrectangle, and becomes your new starting point.
         # repeat until there are no distances greater than that of your current point.
         # the lowest point at the smallest distance, and the lowest point at the greatest distance will always be potentially optimal hyperrectangles.
+        """
+        This function finds the lower convex hull of points based on their fitness and distance values.
+        Each point is associated with a fitness value and a distance value which is the distance
+        from the point to the corner of its hyperrectangle.
         
+        Parameters:
+        - pt_dict: A dictionary where keys are points and values are a numpy array containing fitness 
+                   and another numpy array containing the side lengths of the hyperrectangle.
+        
+        Returns:
+        - S: A list of points forming the lower convex hull.
+        """
+
         S = []
 
+        # Create a dictionary with distances calculated
+        pt_dict2 = {key: np.array([val[0], norm(val[1])/2]) for key, val in pt_dict.items()}
+        
         # sort the dictionary by distance value
-        pt_dict2 = {}
-        for key in pt_dict:
-            pt_dict2[key] = np.array([pt_dict[key][0], norm(pt_dict[key][1])/2])
         pt_dict2 = OrderedDict(sorted(pt_dict2.items(), key=lambda item: item[1][1]))
         
-        dist_vals = sorted(set([val[1] for val in pt_dict2.values()]))
+        # Extract unique distance values
+        unique_distances = sorted(set([val[1] for val in pt_dict2.values()]))
         
         best_dist = norm(pt_dict[tuple(self.x_list[-1])][1])/2
         
         # get rid of any distances lower than the distance containing the best point
-        dist_vals = dist_vals[dist_vals.index(best_dist):]
+        unique_distances = unique_distances[unique_distances.index(best_dist):]
         
+        # Dictionary to store the best points at each unique distance value
         dist_dict = {}
-        # now, for each unique distance value, find the point with the best fitness
-        for val in dist_vals:
-            pt_list = [k for k, v in pt_dict2.items() if v[1] == val]
-            best_pt = pt_list[0]
-            minval = pt_dict2[best_pt][0]
-            for pt in pt_list:
-                if pt_dict2[pt][0] < minval:
-                    best_pt = pt
-                    minval = pt_dict2[pt][0]
         
-            # this contains the best point at every d value
+        # now, for each unique distance value, find the point with the best fitness
+        for val in unique_distances:
+            pt_list = [k for k, v in pt_dict2.items() if v[1] == val]
+            best_pt = min(pt_list, key=lambda pt: pt_dict2[pt][0])
+
+            # this contains the best point at every distance value
             dist_dict[val] = np.array([pt_dict2[best_pt][0],best_pt],dtype=object)
             
         dist_dict = OrderedDict(sorted(dist_dict.items()))
         
-        while len(dist_vals) > 1:
-            d = dist_vals.pop(0)
-            S.append(np.array(dist_dict[d][1]))
-            slope = (dist_dict[dist_vals[0]][0]-dist_dict[d][0])/(dist_vals[0]-d) # rise/run
-            keep_dist = dist_vals[0]
-            for dist in dist_vals:
-                if (dist_dict[dist][0]-dist_dict[d][0])/(dist-d) < slope:
-                    slope = (dist_dict[dist][0]-dist_dict[d][0])/(dist-d)
+        while len(unique_distances) > 1:
+            current_distance = unique_distances.pop(0)
+            S.append(np.array(dist_dict[current_distance][1]))
+            
+            # Calculate the initial slope
+            slope = (dist_dict[unique_distances[0]][0]-dist_dict[current_distance][0])/(unique_distances[0]-current_distance) # rise/run
+            keep_dist = unique_distances[0]
+            
+            for dist in unique_distances:
+                if (dist_dict[dist][0]-dist_dict[current_distance][0])/(dist-current_distance) < slope:
+                    slope = (dist_dict[dist][0]-dist_dict[current_distance][0])/(dist-current_distance)
                     keep_dist = dist
-            # get rid of all distances between d and keep_dist
-            dist_vals = dist_vals[dist_vals.index(keep_dist):]
+                    
+            # get rid of all distances between current_distance and keep_dist
+            unique_distances = unique_distances[unique_distances.index(keep_dist):]
         
         # grab the last point
-        S.append(np.array(dist_dict[dist_vals[-1]][1]))                
+        S.append(np.array(dist_dict[unique_distances[-1]][1]))                
         
         return S
             
@@ -119,6 +133,25 @@ class DIRECTOptimizer(optimizer.Optimizer):
             
             # Find set S of potentially optimal hyperrectangles
             S = self.find_convex_hull(pt_dict)
+            
+            # plot the complex hull
+            # scatter_x = []
+            # scatter_y = []
+            # for value in pt_dict.values():
+            #     scatter_x.append(norm(value[1])/2)
+            #     scatter_y.append(value[0])
+            # plt.figure()
+            # plt.xscale("log")
+            # plt.scatter(scatter_x,scatter_y)
+            # plt.grid()
+            # plt.xlabel('d',fontweight='bold')
+            # plt.ylabel('f',fontweight='bold')
+            # x = []
+            # y = []
+            # for pt in S:
+            #     x.append(norm(pt_dict[tuple(pt)][1])/2)
+            #     y.append(pt_dict[tuple(pt)][0])
+            # plt.plot(x,y)
             
             for pt in S:
                 # find the set of dimensions with the maximum side length.
@@ -159,6 +192,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
             iters += 1
             
         # plot the final complex hull
+        self.x_list.append(x_best)        
         S = self.find_convex_hull(pt_dict)
         scatter_x = []
         scatter_y = []
@@ -170,8 +204,8 @@ class DIRECTOptimizer(optimizer.Optimizer):
         for pt in S:
             x.append(norm(pt_dict[tuple(pt)][1])/2)
             y.append(pt_dict[tuple(pt)][0])
-        plt.plot(x,y)
         plt.figure()
+        plt.plot(x,y)
         plt.xscale("log")
         plt.scatter(scatter_x,scatter_y)
         plt.grid()
@@ -179,7 +213,6 @@ class DIRECTOptimizer(optimizer.Optimizer):
         plt.ylabel('f',fontweight='bold')
         
         f_list.append(f_min)
-        self.x_list.append(x_best)
         self.iterations = iters
         self.function_calls = function.counter
         self.solution = x_best
