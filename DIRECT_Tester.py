@@ -44,7 +44,7 @@ for runNum in range(numRuns):
     # print('initial guess:',guess)
 
     # initialize the optimizer
-    optimizer = DIRECTOptimizer(function, upper_bounds, lower_bounds, max_iters,tol=1e-5)
+    optimizer = DIRECTOptimizer(function, upper_bounds, lower_bounds, max_iters, tol=1e-5, eps=1e-9) # epsilon should be really small (zero) if the function isn't multimodal
     
     # call optimize
     optimizer.optimize()

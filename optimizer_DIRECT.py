@@ -15,11 +15,12 @@ from numpy.linalg import norm
 import copy
 
 class DIRECTOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, eps=1e-4):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.x_list = []
         self.f_list = []
         self.tol = tol
+        self.eps = eps
         
     def contour_plot(self,points):
         if len(self.upper_bounds) == 2:
@@ -64,6 +65,8 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         best_dist = norm(pt_dict[tuple(self.x_list[-1])][1])/2
         
+        f_min = self.f_list[-1]
+        
         # get rid of any distances lower than the distance containing the best point
         unique_distances = unique_distances[unique_distances.index(best_dist):]
         
@@ -82,7 +85,6 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         while len(unique_distances) > 1:
             current_distance = unique_distances.pop(0)
-            S.append(np.array(dist_dict[current_distance][1]))
             
             # Calculate the initial slope
             slope = (dist_dict[unique_distances[0]][0]-dist_dict[current_distance][0])/(unique_distances[0]-current_distance) # rise/run
@@ -92,7 +94,11 @@ class DIRECTOptimizer(optimizer.Optimizer):
                 if (dist_dict[dist][0]-dist_dict[current_distance][0])/(dist-current_distance) < slope:
                     slope = (dist_dict[dist][0]-dist_dict[current_distance][0])/(dist-current_distance)
                     keep_dist = dist
-                    
+            
+            # # now make sure that the potential optimal point could improve the best fitness by a minimum amount
+            if pt_dict[tuple(dist_dict[current_distance][1])][0]-slope*current_distance <= f_min-self.eps*abs(f_min):
+                S.append(np.array(dist_dict[current_distance][1]))
+                
             # get rid of all distances between current_distance and keep_dist
             unique_distances = unique_distances[unique_distances.index(keep_dist):]
         
@@ -106,7 +112,6 @@ class DIRECTOptimizer(optimizer.Optimizer):
         max_iters = self.max_iters
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
-        f_list = []
         
         function.counter = 0
         iters = 0
@@ -129,29 +134,10 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         while ((min_dist > self.tol) and (iters < max_iters)):
             self.x_list.append(x_best)
-            f_list.append(f_min)
+            self.f_list.append(f_min)
             
             # Find set S of potentially optimal hyperrectangles
             S = self.find_convex_hull(pt_dict)
-            
-            # plot the complex hull
-            # scatter_x = []
-            # scatter_y = []
-            # for value in pt_dict.values():
-            #     scatter_x.append(norm(value[1])/2)
-            #     scatter_y.append(value[0])
-            # plt.figure()
-            # plt.xscale("log")
-            # plt.scatter(scatter_x,scatter_y)
-            # plt.grid()
-            # plt.xlabel('d',fontweight='bold')
-            # plt.ylabel('f',fontweight='bold')
-            # x = []
-            # y = []
-            # for pt in S:
-            #     x.append(norm(pt_dict[tuple(pt)][1])/2)
-            #     y.append(pt_dict[tuple(pt)][0])
-            # plt.plot(x,y)
             
             for pt in S:
                 # find the set of dimensions with the maximum side length.
@@ -212,9 +198,9 @@ class DIRECTOptimizer(optimizer.Optimizer):
         plt.xlabel('d',fontweight='bold')
         plt.ylabel('f',fontweight='bold')
         
-        f_list.append(f_min)
+        self.f_list.append(f_min)
         self.iterations = iters
         self.function_calls = function.counter
         self.solution = x_best
         self.function_value = f_min
-        self.convergence = f_list
+        self.convergence = self.f_list
