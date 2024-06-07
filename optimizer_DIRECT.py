@@ -8,9 +8,7 @@ Created on Tue May 28 07:40:13 2024
 import optimizer
 from MakeContourPlot import MakeContourPlot
 import numpy as np
-from collections import OrderedDict
 import matplotlib.pyplot as plt
-from scipy.stats import qmc
 from numpy.linalg import norm
 import copy
 
@@ -31,14 +29,13 @@ class DIRECTOptimizer(optimizer.Optimizer):
             plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
             return fig
         else:
-            print("Cannot create contour plot. Number of independent variables needs to be two.\n")  
-            
+            print("Cannot create contour plot. Number of independent variables needs to be two.\n")              
+    
     def find_convex_hull(self, pt_dict):
-        # Starting with the point with the lowest distance and best fitness,
-        # draw lines to all the minimum points at each distance greater than that of the current point.
+        # Starting with the point with the best fitness, draw lines to all the minimum points at each distance greater than that of the current point.
         # The other minimum point that results in the lowest slope is a potentially optimal hyperrectangle, and becomes your new starting point.
         # repeat until there are no distances greater than that of your current point.
-        # the lowest point at the smallest distance, and the lowest point at the greatest distance will always be potentially optimal hyperrectangles.
+        # The lowest point at the greatest distance will always be a potentially optimal hyperrectangle.
         """
         This function finds the lower convex hull of points based on their fitness and distance values.
         Each point is associated with a fitness value and a distance value which is the distance
@@ -46,65 +43,63 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         Parameters:
         - pt_dict: A dictionary where keys are points and values are a numpy array containing fitness 
-                   and another numpy array containing the side lengths of the hyperrectangle.
+                    and another numpy array containing the side lengths of the hyperrectangle.
         
         Returns:
         - S: A list of points forming the lower convex hull.
         """
-
+        
         S = []
-
-        # Create a dictionary with distances calculated
-        pt_dict2 = {key: np.array([val[0], norm(val[1])/2]) for key, val in pt_dict.items()}
-        
-        # sort the dictionary by distance value
-        pt_dict2 = OrderedDict(sorted(pt_dict2.items(), key=lambda item: item[1][1]))
-        
-        # Extract unique distance values
-        unique_distances = sorted(set([val[1] for val in pt_dict2.values()]))
-        
-        best_dist = norm(pt_dict[tuple(self.x_list[-1])][1])/2
-        
+    
+        # Convert the dictionary to a set of numpy arrays for efficient operations
+        points = np.array(list(pt_dict.keys()))
+        fitnesses = np.array([pt_dict[tuple(point)][0] for point in points])
+        distances = np.array([norm(pt_dict[tuple(point)][1])/2 for point in points])
+    
+        # Sort points by primarily by distance and secondarily by fitness
+        sorted_indices = np.lexsort((fitnesses,distances))
+        points = points[sorted_indices]
+        fitnesses = fitnesses[sorted_indices]
+        distances = distances[sorted_indices]
+    
+        # get rid of any points with distances lower than the distance containing the best fitness
+        distance_at_best_pt = np.linalg.norm(pt_dict[tuple(self.x_list[-1])][1]) / 2
+        start_index = np.searchsorted(distances, distance_at_best_pt, side='left')
+        points = points[start_index:]
+        fitnesses = fitnesses[start_index:]
+        distances = distances[start_index:]
+    
+        # Find the best fitness point at each distance
+        unique_distances, indices = np.unique(distances, return_index=True)
+        best_fitnesses = fitnesses[indices]
+        best_points = points[indices]
+    
+        # convex hull selection
         f_min = self.f_list[-1]
-        
-        # get rid of any distances lower than the distance containing the best point
-        unique_distances = unique_distances[unique_distances.index(best_dist):]
-        
-        # Dictionary to store the best points at each unique distance value
-        dist_dict = {}
-        
-        # now, for each unique distance value, find the point with the best fitness
-        for val in unique_distances:
-            pt_list = [k for k, v in pt_dict2.items() if v[1] == val]
-            best_pt = min(pt_list, key=lambda pt: pt_dict2[pt][0])
-
-            # this contains the best point at every distance value
-            dist_dict[val] = np.array([pt_dict2[best_pt][0],best_pt],dtype=object)
-            
-        dist_dict = OrderedDict(sorted(dist_dict.items()))
-        
         while len(unique_distances) > 1:
-            current_distance = unique_distances.pop(0)
+            current_distance = unique_distances[0]
+            current_fitness = best_fitnesses[0]
             
-            # Calculate the initial slope
-            slope = (dist_dict[unique_distances[0]][0]-dist_dict[current_distance][0])/(unique_distances[0]-current_distance) # rise/run
-            keep_dist = unique_distances[0]
+            # Calculate the slopes from the current point to the best point at each other distance value
+            slopes = (best_fitnesses[1:]-current_fitness)/(unique_distances[1:]-current_distance) # rise/run
             
-            for dist in unique_distances:
-                if (dist_dict[dist][0]-dist_dict[current_distance][0])/(dist-current_distance) < slope:
-                    slope = (dist_dict[dist][0]-dist_dict[current_distance][0])/(dist-current_distance)
-                    keep_dist = dist
+            # determine the smallest slope
+            min_slope_index = np.argmin(slopes)
+            slope = slopes[min_slope_index]
             
-            # # now make sure that the potential optimal point could improve the best fitness by a minimum amount
-            if pt_dict[tuple(dist_dict[current_distance][1])][0]-slope*current_distance <= f_min-self.eps*abs(f_min):
-                S.append(np.array(dist_dict[current_distance][1]))
-                
-            # get rid of all distances between current_distance and keep_dist
-            unique_distances = unique_distances[unique_distances.index(keep_dist):]
-        
-        # grab the last point
-        S.append(np.array(dist_dict[unique_distances[-1]][1]))                
-        
+            # now make sure that the potential optimal point could improve the best fitness by a minimum amount
+            if current_fitness-slope*current_distance <= f_min-self.eps*abs(f_min):
+                S.append(np.array(best_points[0]))
+            
+            # get rid of all points between current point and the point resulting in the shallowest slope
+            unique_distances = unique_distances[min_slope_index+1:]
+            best_fitnesses = best_fitnesses[min_slope_index+1:]
+            best_points = best_points[min_slope_index+1:]
+    
+        # Append the last point
+        if len(unique_distances) > 0:
+            S.append(np.array(best_points[-1]))
+    
         return S
             
     def optimize(self):
@@ -178,7 +173,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
             iters += 1
             
         # plot the final complex hull
-        self.x_list.append(x_best)        
+        self.x_list.append(x_best)    
         S = self.find_convex_hull(pt_dict)
         scatter_x = []
         scatter_y = []
