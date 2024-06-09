@@ -20,7 +20,6 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         self.guess = []
         self.x_list = []
         self.f_list = []
-        self.current_simplex = []
         self.tol = tol
         self.plot_simplex = plot_simplex
         
