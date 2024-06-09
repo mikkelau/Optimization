@@ -54,7 +54,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
         # Convert the dictionary to a set of numpy arrays for efficient operations
         points = np.array(list(pt_dict.keys()))
         fitnesses = np.array([pt_dict[tuple(point)][0] for point in points])
-        distances = np.array([norm(pt_dict[tuple(point)][1])/2 for point in points])
+        distances = np.array([norm(pt_dict[tuple(point)][1])/2 for point in points],dtype=np.longdouble) # need longdouble to correctly calculate slope
     
         # Sort points by primarily by distance and secondarily by fitness
         sorted_indices = np.lexsort((fitnesses,distances))
