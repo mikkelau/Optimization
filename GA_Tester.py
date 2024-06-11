@@ -34,7 +34,7 @@ for runNum in range(numRuns):
     # initial guess
 
     # initialize the optimizer
-    optimizer = GeneticAlgorithmOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_generations=True) # epsilon should be really small (zero) if the function isn't multimodal
+    optimizer = GeneticAlgorithmOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_generations=True, num_pops=33) # epsilon should be really small (zero) if the function isn't multimodal
     
     # call optimize
     optimizer.optimize()

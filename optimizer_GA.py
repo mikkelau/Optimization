@@ -14,11 +14,12 @@ import random
 import time
 
 class GeneticAlgorithmOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, plot_generations=False):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, plot_generations=False, num_pops=None):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.x_list = []
         self.f_list = []
         self.plot_generations = plot_generations
+        self.num_pops = num_pops
         
     def contour_plot(self,points=[]):
         if len(self.upper_bounds) == 2:
@@ -36,6 +37,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         max_iters = self.max_iters
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
+        num_pops = self.num_pops
         
         function.counter = 0
         
@@ -50,17 +52,17 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         mutfrac = crossfrac # =2/n, default in NSGA code
         
         #create first generation
-        pop = 15*n # should be 15-20 x number of design variables
-        #needs to be even
-        if (pop%2 == 1):
-            pop+=1
-        # pop/2 should also be even
-        if ((pop/2)%2 == 1):
-            pop+=2
+        if num_pops:
+            #needs to be even
+            if (num_pops%2 == 1):
+                num_pops+=1
+        else:
+            num_pops = 16*n # should be 15-20 x number of design variables
+        
             
         # sample the solution space
         engine = qmc.LatinHypercube(d=n)
-        sample = engine.random(n=pop)
+        sample = engine.random(n=num_pops)
         points = qmc.scale(sample, lower_bounds, upper_bounds)
         fitness = np.array([function(point) for point in points])
         
@@ -119,7 +121,6 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
                     elif child1[j] > upper_bounds[j]:
                         child1[j] = upper_bounds[j]
                     # child 2
-                    #child2[j] = dad[j]-crossover_flag[j]*randNum[j]*ratio*(dad[j]-mom[j])
                     child2.append(dad[j]-crossover_flag[j]*randNum[j]*ratio*(dad[j]-mom[j]))
                     # enforce bounds
                     if child2[j] < lower_bounds[j]:
@@ -134,7 +135,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             # Mutate
             # calculate the mutation parameters using scale and shrink
             S = [scale*(1-shrink*gen/max_iters)*(upper_bounds[n]-lower_bounds[n]) for n in range(n)]
-            fitness_children = np.empty((pop,1))
+            fitness_children = np.empty((num_pops,1))
             # do the mutation
             for i, child in enumerate(children):
                 for j in range(n):
@@ -151,9 +152,9 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             # Choose next generation
             parents_with_children = np.vstack((points,children))
             all_fitness = np.append(fitness, fitness_children)
-            idx_best = np.argpartition(all_fitness,pop)
-            fitness = all_fitness[idx_best[:pop]]
-            points = parents_with_children[idx_best[:pop]]
+            idx_best = np.argpartition(all_fitness,num_pops)
+            fitness = all_fitness[idx_best[:num_pops]]
+            points = parents_with_children[idx_best[:num_pops]]
             
             # plot current simplex
             if self.plot_generations and n==2:
