@@ -31,6 +31,54 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             return fig
         else:
             print("Cannot create contour plot. Number of independent variables needs to be two.\n") 
+    
+    # based on NSGA technique
+    def create_children(self,pool,fitness):
+
+        n = len(self.upper_bounds)
+        ratio = 1.2 # scalar. If it lies in the range [0, 1], the children created are within the two parents. If algorithm is premature, try to set ratio larger than 1.0
+        crossfrac = 2/n #default in NSGA code
+        
+        # generate offspring
+        children = np.empty((0,2))
+        # create parents
+        for i in range(0,len(pool),2):
+            mom = pool[i]
+            dad = pool[i+1]
+            crossover_flag = [random.random() < crossfrac for j in range(len(mom))]
+            randNum = np.array([random.random() for j in range(len(mom))])
+                        
+            # crossover
+            child1 = mom+crossover_flag*randNum*ratio*(dad-mom)
+            child2 = dad-crossover_flag*randNum*ratio*(dad-mom)
+            
+            children = np.vstack((children,np.vstack((child1,child2))))
+        
+        return children
+    
+    # using the golden ratio
+    # def create_children(self,pool,fitness):
+
+    #     phi = (1+5**0.5)/2
+        
+    #     # generate offspring
+    #     children = np.empty((0,2))
+    #     # create parents
+    #     for i in range(0,len(pool),2):
+    #         if fitness[i] < fitness[i+1]:
+    #             parent1 = pool[i]
+    #             parent2 = pool[i+1]
+    #         else:
+    #             parent1 = pool[i+1]
+    #             parent2 = pool[i]
+                        
+    #         # crossover
+    #         child1 = parent1+(parent2-parent1)/(1+phi)
+    #         child2 = parent1-(parent2-parent1)/(1+phi)
+
+    #         children = np.vstack((children,np.vstack((child1,child2))))
+        
+    #     return children
             
     def optimize(self):
         function = self.function
@@ -43,13 +91,10 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         
         n = len(upper_bounds)
         
-        ratio = 1.2 # scalar. If it lies in the range [0, 1], the children created are within the two parents. If algorithm is premature, try to set ratio larger than 1.0
-        crossfrac = 2/n #default in NSGA code
-        
         # mutation
         scale = 0.1 #determines the standard deviation of the random numbers generated
         shrink = 0.5 #scalar, [0,1]. As the optimization progress goes forward, decrease the mutation range (for example, shrink?[0.5, 1.0]) is usually used for local search
-        mutfrac = crossfrac # =2/n, default in NSGA code
+        mutfrac =2/n # =crossfrac , default in NSGA code
         
         #create first generation
         if num_pops:
@@ -91,61 +136,34 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             # determine the mating pool via tournament selection.
             # each point is randomly paired with another point, and the winner gets added to the mating pool
             pool = []
-            opponents = np.append(random.sample(range(len(points)),len(points)),random.sample(range(len(points)),len(points)))   
+            pool_fitness = []
+            # ensures no mating with oneself (not sure if that's what I want)
+            opponents = np.append(random.sample(range(len(points)),len(points)),random.sample(range(len(points)),len(points)))  
             for i in range(0,len(opponents),2):
                 if fitness[opponents[i]] < fitness[opponents[i+1]]:
                     pool.append(points[opponents[i]])
+                    pool_fitness.append(fitness[opponents[i]])
                 else:
                     pool.append(points[opponents[i+1]])
-                    
-            # generate offspring
-            children = np.empty((0,2))
+                    pool_fitness.append(fitness[opponents[i+1]])
+            
             # crossover
-            # create parents
-            for i in range(0,len(pool),2):
-                mom = pool[i]
-                dad = pool[i+1]
-                crossover_flag = [random.random() < crossfrac for n in range(n)]
-                randNum = [random.random() for n in range(n)]
-                #child1 = np.empty((1,2))
-                #child2 = np.empty((1,2))
-                child1 = []
-                child2 = []
+            children = self.create_children(pool,pool_fitness)
                 
-                for j in range(n):
-                    # child 1
-                    child1.append(mom[j]+crossover_flag[j]*randNum[j]*ratio*(dad[j]-mom[j]))
-                    # enforce bounds
-                    if child1[j] < lower_bounds[j]:
-                        child1[j] = lower_bounds[j]
-                    elif child1[j] > upper_bounds[j]:
-                        child1[j] = upper_bounds[j]
-                    # child 2
-                    child2.append(dad[j]-crossover_flag[j]*randNum[j]*ratio*(dad[j]-mom[j]))
-                    # enforce bounds
-                    if child2[j] < lower_bounds[j]:
-                        child2[j] = lower_bounds[j]
-                    elif child2[j] > upper_bounds[j]:
-                        child2[j] = upper_bounds[j]
-                #children.append(child1)
-                #children.append(child2)
-                children = np.vstack((children,child1))
-                children = np.vstack((children,child2))
-                
-            # Mutate
+            # mutation
             # calculate the mutation parameters using scale and shrink
             S = [scale*(1-shrink*gen/max_iters)*(upper_bounds[n]-lower_bounds[n]) for n in range(n)]
             fitness_children = np.empty((num_pops,1))
+            mutation_flag = [random.random() < mutfrac for n in range(n)]
             # do the mutation
             for i, child in enumerate(children):
                 for j in range(n):
-                    if random.random() < mutfrac:
-                        child[j] = child[j]+S[j]*np.random.randn()
-                        # enforce bounds
-                        if child[j] < lower_bounds[j]:
-                            child[j] = lower_bounds[j]
-                        elif child[j] > upper_bounds[j]:
-                            child[j] = upper_bounds[j]
+                    child[j] = child[j]+S[j]*mutation_flag[j]*np.random.randn()
+                    # enforce bounds
+                    if child[j] < lower_bounds[j]:
+                        child[j] = lower_bounds[j]
+                    elif child[j] > upper_bounds[j]:
+                        child[j] = upper_bounds[j]
                 # determine fitness of each child
                 fitness_children[i] = function(child)
                 
