@@ -77,16 +77,11 @@ class GPSOptimizer(optimizer.Optimizer):
         iters = 0
         
         # enforce bounds in initial guess
-        guess_enforced = False
-        for i in range(len(x0)):
-            if x0[i] > upper_bounds[i]:
-                x0[i] = upper_bounds[i]
-                guess_enforced = True
-            elif x0[i] < lower_bounds[i]:
-                x0[i] = lower_bounds[i]
-                guess_enforced = True
-        if guess_enforced == True:
+        x0_new = np.clip(x0, lower_bounds, upper_bounds)
+
+        if not np.array_equal(x0_new, x0):
             print('Bounds enforced for initial guess')
+        x0 = x0_new
         
         n = len(x0)
         
@@ -120,11 +115,7 @@ class GPSOptimizer(optimizer.Optimizer):
                     s = x0 + delta*D[i]
                     
                     # enforce bounds
-                    for j in range(len(s)):
-                        if s[j] > upper_bounds[j]:
-                            s[j] = upper_bounds[j]
-                        elif s[j] < lower_bounds[j]:
-                            s[j] = lower_bounds[j]
+                    s = np.clip(s, lower_bounds, upper_bounds)
                     
                     # check if the new point has already been evaluated
                     if tuple(s) not in point_to_value:
