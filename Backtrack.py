@@ -25,23 +25,28 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
         f_eval = f_current
         g_eval = g
     else:
+        minimum_step_enforced = False
         Xnew = X+[alpha*i for i in p_dir]
-        dir_slope = sum([i*j for (i, j) in zip(g, p_dir)]) # this is the dot product
+        dir_slope = np.dot(g, p_dir)  # this is the dot product
         f_eval = function(Xnew)
         while (f_eval > f_current+mu*alpha*dir_slope):
             alpha_new = rho*alpha
             # print('new alpha:',alpha_new)
             
-            # Enforce the minimum step if needed. Do I want to implement a minimum step?
+            # Enforce the minimum step
             if (alpha_new < (np.finfo(np.float32).eps)**(1/3)): # minimum step defined as epsilon^0.33
                 # print('enforcing minimum step')
-                # breaking here just accepts the previous alpha and other quantities. May want to actually set alpha to be the minimum step and update everything
+                alpha_new = (np.finfo(np.float32).eps)**(1/3)
+                minimum_step_enforced = True
+
+            # update quantities
+            alpha = alpha_new    
+            Xnew = X+[alpha*i for i in p_dir]
+            f_eval = function(Xnew)
+            
+            if minimum_step_enforced:
                 break
-            else:
-                # update quantities
-                alpha = alpha_new    
-                Xnew = X+[alpha*i for i in p_dir]
-                f_eval = function(Xnew)
+            
             
         g_eval = gradients(Xnew, function)
     

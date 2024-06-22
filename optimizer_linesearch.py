@@ -16,19 +16,19 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         
     def enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds):
         bounds_enforced = False
+        alpha_new = alpha
         for i in range(len(X)):
             if (X[i]+alpha*p_dir[i] > upper_bounds[i]):
                 # solve for the alpha that would land on the boundary
-                alpha_new = (upper_bounds[i]-X[i])/p_dir[i]
-                if (alpha_new < alpha): # this check is needed to make sure we aren't overwriting an alpha that was already solved for when checking a different bound
-                    alpha = alpha_new
-                    bounds_enforced = True
+                alpha_boundary = (upper_bounds[i]-X[i])/p_dir[i]
+                alpha_new = min(alpha_new,alpha_boundary) # this makes sure we aren't overwriting an alpha that was already solved for when checking a different bound
             elif (X[i]+alpha*p_dir[i] < lower_bounds[i]):
                 # solve for the alpha that would land on the boundary
-                alpha_new = (lower_bounds[i]-X[i])/p_dir[i]
-                if (alpha_new < alpha): # this check is needed to make sure we aren't overwriting an alpha that was already solved for when checking a different bound
-                    alpha = alpha_new
-                    bounds_enforced = True
+                alpha_boundary = (lower_bounds[i]-X[i])/p_dir[i]
+                alpha_new = min(alpha_new,alpha_boundary) # this makes sure we aren't overwriting an alpha that was already solved for when checking a different bound
+        if alpha_new < alpha:
+            bounds_enforced = True
+            alpha = alpha_new
         
         return alpha, bounds_enforced
     
@@ -74,39 +74,43 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                 
             # check if alpha was forced to 0 (due to boundary enforcement)
             if (alpha == 0.0):
-                # print('method got stuck on boundary')
                 
-                # travel along the boundary
+                # travel along the boundary by enforcing bounds
                 xnew = x+[alpha_init*i for i in p]
                 # enforce bounds
-                for i in range(len(x)):
-                    if (xnew[i] > upper_bounds[i]):
-                        xnew[i] = upper_bounds[i]
-                    elif (xnew[i] < lower_bounds[i]):
-                        xnew[i] = lower_bounds[i]
-                        
-                if (norm(xnew-x) <  1e-6):
+                xnew = np.clip(xnew, lower_bounds, upper_bounds)
+                
+                # recalculate step direction along boundary
+                p = xnew-x
+                
+                # make sure step is greater than 0
+                if np.array_equal(x, xnew):
                     print('method got stuck on boundary')
                     break
                 
-                # update everything
-                alpha = np.dot(xnew-x,[alpha_init*i for i in p]) # the projection of the actual step direction in the p direction
-                x = xnew
-                f = function(x)
-                g = gradients(x,function)
+                # make sure the slope in the new p direction is negative
+                if np.dot(g, p) > 0:
+                    print('method got stuck on boundary')
+                    break
+
+                # redo the line search
+                f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds)
+                
+                # if you're taking really small steps, just quit
+                if alpha <= (np.finfo(np.float32).eps)**(1/3):
+                    print('method got stuck on boundary')
+                    break               
             
-            else:   
-                # update x
-                x = x+[alpha*i for i in p]
+            # update x
+            x = x+[alpha*i for i in p]
             
             # store the updated point and associated gradient
             self.x_list.append(x)
             self.f_list.append(f)
             g_list.append(norm(g))
             
-            
         self.iterations = method.iters
         self.function_calls = function.counter
         self.solution = x
-        self.function_value = f
+        self.function_value = self.f_list[-1]
         self.convergence = g_list

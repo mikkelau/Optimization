@@ -64,11 +64,24 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
 
 def pinpoint(alpha_low, alpha_high, f_current, f_low, f_high, slope_current, slope_low, slope_high, mu1, mu2, function, gradients, X, p_dir):
     k = 0
+    
     while True:
-        alpha_p = interpolate(alpha_low, alpha_high, f_low, f_high, slope_low, slope_high)
+        # enforce minimum step
+        minimum_step_enforced = False
+        if max(alpha_low,alpha_high) < (np.finfo(np.float32).eps)**(1/3):
+            # print("minimum step enforced")
+            alpha_p = (np.finfo(np.float32).eps)**(1/3)
+            minimum_step_enforced = True
+        else:
+            alpha_p = interpolate(alpha_low, alpha_high, f_low, f_high, slope_low, slope_high)
+            
         Xnew = X+alpha_p*p_dir
         f_p = function(Xnew)
         g_p = gradients(Xnew, function)
+        
+        if minimum_step_enforced:
+            break
+        
         # plot_linesearch(alpha_low, alpha_high, f_low, f_high, slope_low, slope_high, alpha_p, f_p, g_p)
         slope_p = np.dot(g_p, p_dir) # this is the dot product
         if ((f_p > f_current+mu1*alpha_p*slope_current) or (f_p > f_low)): # if new point does not decrease fitness, or if it is not lower than the low step
@@ -89,7 +102,7 @@ def pinpoint(alpha_low, alpha_high, f_current, f_low, f_high, slope_current, slo
             alpha_low = alpha_p 
             f_low = f_p
             slope_low = slope_p
-        
+         
         # increment counter
         k += 1 
         if (k >= 3):

@@ -7,6 +7,7 @@ Created on Fri Jul 22 16:32:09 2022
  
 # bounds: -3 < x < 3; -1 < y < 3
 upper_bounds = [2.5,3]
+# upper_bounds = [1,3] # to test boundary behavior
 lower_bounds = [-2.5,-1]
 f_opt = 0.09194
 f_opt_tol = 5e-5

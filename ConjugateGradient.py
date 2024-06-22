@@ -12,6 +12,7 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
     
     if (method.iters%2 == 0):
         p = np.array([-1*i/norm(g) for i in g])
+        
     else:
         # print('utilized beta')
         # Fletcher–Reeves formula
@@ -22,7 +23,10 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
         
         beta = max(0.0,beta) # force Beta to not be negative
         p = np.array([-1*i/norm(g) for i in g])+beta*method.p_old
-        
+    
+    # normalize p
+    p = p/norm(p)
+    
     if method.iters == 0:
         alpha = 1 # this is totally arbitrary, not sure what a good size is
     else:
