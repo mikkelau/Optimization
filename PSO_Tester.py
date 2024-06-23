@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jun  9 12:27:17 2024
+Created on Sat Jun 22 19:44:19 2024
 
 @author: mikke
 """
 
-from optimizer_GA import GeneticAlgorithmOptimizer 
+from optimizer_PSO import ParticleSwarmOptimizer 
 
 from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
 # from Brachistochrone import function, upper_bounds, lower_bounds
@@ -29,7 +29,7 @@ for runNum in range(numRuns):
     # initial guess
 
     # initialize the optimizer
-    optimizer = GeneticAlgorithmOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_generations=True, num_pops=33)
+    optimizer = ParticleSwarmOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_particles=True, num_pops=33) 
     
     # call optimize
     optimizer.optimize()

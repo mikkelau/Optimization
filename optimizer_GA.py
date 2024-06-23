@@ -40,7 +40,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         crossfrac = 2/n #default in NSGA code
         
         # generate offspring
-        children = np.empty((0,2))
+        children = np.empty((0,n))
         # create parents
         for i in range(0,len(pool),2):
             mom = pool[i]
@@ -91,7 +91,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         
         n = len(upper_bounds)
         
-        # mutation
+        # mutation parameters
         scale = 0.1 #determines the standard deviation of the random numbers generated
         shrink = 0.5 #scalar, [0,1]. As the optimization progress goes forward, decrease the mutation range (for example, shrink?[0.5, 1.0]) is usually used for local search
         mutfrac =2/n # =crossfrac , default in NSGA code
@@ -104,12 +104,10 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         else:
             num_pops = 16*n # should be 15-20 x number of design variables
         
-            
         # sample the solution space
         engine = qmc.LatinHypercube(d=n)
         sample = engine.random(n=num_pops)
         points = qmc.scale(sample, lower_bounds, upper_bounds)
-        fitness = np.array([function(point) for point in points])
         
         # plot initial population
         if self.plot_generations and n==2:
@@ -123,16 +121,17 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             # reset the function counter to 0 so that making the contour plot isn't counted
             function.counter = 0
         
+        # determine best fitness and best point
+        fitness = np.array([function(point) for point in points])
+        idx_best = np.argmin(fitness)
+        best = fitness[idx_best]
+        best_point = points[idx_best]
+        self.f_list.append(best)
+        self.x_list.append(points[idx_best])
+        
         gen = 1
         while gen <= max_iters:
-            
-            # determine best fitness and best point
-            idx_best = np.argmin(fitness)
-            best = fitness[idx_best]
-            best_point = points[idx_best]
-            self.f_list.append(best)
-            self.x_list.append(points[idx_best])
-            
+                        
             # determine the mating pool via tournament selection.
             # each point is randomly paired with another point, and the winner gets added to the mating pool
             pool = []
@@ -173,7 +172,14 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             fitness = all_fitness[idx_best[:num_pops]]
             points = parents_with_children[idx_best[:num_pops]]
             
-            # plot current simplex
+            # determine best fitness and best point
+            idx_best = np.argmin(fitness)
+            best = fitness[idx_best]
+            best_point = points[idx_best]
+            self.f_list.append(best)
+            self.x_list.append(points[idx_best])
+            
+            # plot current generation
             if self.plot_generations and n==2:
                 # updating the values of the simplex
                 line1.set_xdata([i[0] for i in np.vstack(points)])
@@ -187,12 +193,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             # increment generation count
             gen+=1
         
-        idx_best = np.argmin(fitness)
-        best = fitness[idx_best]
-        best_point = points[idx_best]
-        self.f_list.append(best)
-        self.x_list.append(points[idx_best])
-        self.iterations = gen
+        self.iterations = gen-1
         self.function_calls = function.counter
         self.solution = best_point
         self.function_value = best
