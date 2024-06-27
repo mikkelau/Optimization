@@ -82,9 +82,9 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         # define l
         ranges = np.array([i-j for i,j in zip(upper_bounds,lower_bounds)])
         l = 0.25*min(ranges) # this is arbitrary, it might be good to determine this using some other criteria
-        if n==2:
-            # determine the centroid of the search space
-            cent = [(lower_bounds[i]+upper_bounds[i])/2 for i in range(len(upper_bounds))]
+        # determine the centroid of the search space
+        cent = [(lower_bounds[i]+upper_bounds[i])/2 for i in range(len(upper_bounds))]
+        if (n==2 and not np.array_equal(cent, x0)):
             # find the direction of the centroid from x0
             p = np.array([j-i for i,j in zip(x0,cent)])
             # determine the location of the centroid of the remaining two points,

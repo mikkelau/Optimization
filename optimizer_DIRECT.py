@@ -123,7 +123,8 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         f_min = function(cent)
         x_best = cent
-        pt_dict[tuple(cent)] = np.array([f_min,np.array([upper-lower for upper,lower in zip(upper_bounds,lower_bounds)])],dtype=object)
+        pt_dict[tuple(cent)] = np.array([f_min,np.array([upper-lower for upper,lower in zip(upper_bounds,lower_bounds)],dtype=float)],dtype=object)
+        # need to define the side lengths as type float, or else problems can happen
         
         min_dist = norm(pt_dict[tuple(cent)][1])/2
         
@@ -187,7 +188,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
             y.append(pt_dict[tuple(pt)][0])
         plt.figure()
         plt.plot(x,y)
-        plt.xscale("log")
+        plt.xscale("log") # this may cause the plot of the lower hull to look like it is incorrectly skipping points at some distances
         plt.scatter(scatter_x,scatter_y)
         plt.grid()
         plt.xlabel('d',fontweight='bold')
