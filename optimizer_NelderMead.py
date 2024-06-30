@@ -13,6 +13,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 import time
 from numpy.linalg import norm
+from scipy.spatial.distance import pdist
 
 class NelderMeadOptimizer(optimizer.Optimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, plot_simplex=False):
@@ -54,16 +55,41 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         Xnew = tuple(x_c+alpha*(x_c-X))
         
         return Xnew, alpha, bounds_enforced
+    
+    def angle_between(self, vec1, vec2):
+        vec1_u = vec1/norm(vec1)
+        vec2_u = vec2/norm(vec2)
+        angle = np.arccos(np.clip(vec1_u.dot(vec2_u), -1.0, 1.0))
+        return angle
+    
+    def create_normal_vector(self, simplex, simplex_fitness):
+        simplex_with_fitness = np.append(simplex,
+                                         simplex_fitness.reshape(len(simplex),1),
+                                         axis=1)
+        k = np.ones(simplex_with_fitness.shape[0])
+        normal_vector = np.dot(np.linalg.inv(simplex_with_fitness), k)
+        
+        # This also works, but I am not sure which method is "better"
+        # centroid = np.mean(points, axis=0)
+        # u, s, vh = np.linalg.svd(points - centroid, full_matrices=False)
+        # normal_vector = vh[-1] # already normalized
+        
+        return normal_vector/norm(normal_vector)
+        
             
     def optimize(self, x0):
         self.guess = x0
         
         function = self.function
         max_iters = self.max_iters
-        upper_bounds = self.upper_bounds
-        lower_bounds = self.lower_bounds
+        upper_bounds = np.array(self.upper_bounds)
+        lower_bounds = np.array(self.lower_bounds)
         tol = self.tol
         f_list = []
+        angle_list = []
+        delta_list = []
+        g_list = []
+        size_list = []
         
         function.counter = 0
         iters = 0
@@ -80,16 +106,16 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         simplex = np.empty(shape=(n+1,n),dtype='float64')
         simplex[0] = x0
         # define l
-        ranges = np.array([i-j for i,j in zip(upper_bounds,lower_bounds)])
+        ranges = upper_bounds-lower_bounds
         l = 0.25*min(ranges) # this is arbitrary, it might be good to determine this using some other criteria
         # determine the centroid of the search space
-        cent = [(lower_bounds[i]+upper_bounds[i])/2 for i in range(len(upper_bounds))]
+        cent = np.mean([upper_bounds,lower_bounds],axis=0)
         if (n==2 and not np.array_equal(cent, x0)):
             # find the direction of the centroid from x0
             p = np.array([j-i for i,j in zip(x0,cent)])
             # determine the location of the centroid of the remaining two points,
-            # constraining it to be in the direction of the centroid of the search space
-            c_pts = x0+np.array([i/norm(p) for i in p])*l*sqrt(n*(n+1)/2)/n
+            # and constraining it to be in the direction of the centroid of the search space
+            c_pts = x0+p/norm(p)*l*sqrt(n*(n+1)/2)/n
             simplex[1] = [c_pts[0]+p[1]/norm(p)*l/2,c_pts[1]-p[0]/norm(p)*l/2]
             simplex[2] = [c_pts[0]-p[1]/norm(p)*l/2,c_pts[1]+p[0]/norm(p)*l/2]
             # is there a way to generalize this for a tetrehedron or hypertetrahedron?
@@ -126,30 +152,42 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         # populate the dictionary
         for point in simplex:
             point_to_value[tuple(point)] = function(point)
-        simplex_dict = point_to_value
-            
-        delta_simplex = 0
+        
+        v = np.append(np.zeros(n),1.0)
+        
+        # Order from the lowest (best) to the highest
+        simplex_dict = {}
+        for point in simplex:
+            simplex_dict[tuple(point)] = point_to_value[tuple(point)]
+        simplex_dict = OrderedDict(sorted(simplex_dict.items(), key=lambda item: item[1]))
+        simplex = np.array([key for key in simplex_dict.keys()])
+        simplex_fitness = np.array([simplex_dict[tuple(point)] for point in simplex])
+        
+        # save the current best point
+        self.x_list.append(simplex[0])
+        
+        # calculate convergence criteria
+        f_list.append(list(simplex_dict.values())[0])
+        norm_vec = self.create_normal_vector(simplex, simplex_fitness)
+        
+        angle_list.append(min(self.angle_between(norm_vec,v),
+                              self.angle_between(norm_vec,-1*v)))
+        g = norm_vec[:-1]/norm_vec[-1]
+        g_list.append(norm(g))
+        size_simplex = 0
         for i in range(n):
-            delta_simplex += np.linalg.norm(simplex[i]-simplex[n])
-            
-        while ((delta_simplex>tol) and (iters < max_iters)):
+            size_simplex += norm(simplex[i]-simplex[n])
+        size_list.append(size_simplex)
+        delta_simplex = np.mean(pdist(simplex))
+        delta_list.append(delta_simplex)
+        
+        while ((norm(g) > tol) and (iters < max_iters)):
             alpha = 1
-            # Order from the lowest (best) to the highest
-            simplex_dict = {}
-            for point in simplex:
-                simplex_dict[tuple(point)] = point_to_value[tuple(point)]
-            simplex_dict = OrderedDict(sorted(simplex_dict.items(), key=lambda item: item[1]))
-            simplex = np.array([key for key in simplex_dict.keys()])
-            
-            # save the current best point
-            self.x_list.append(simplex[0])
 
             f_best = list(simplex_dict.values())[0]
             f_worst = list(simplex_dict.values())[-1]
             f_secondworst = list(simplex_dict.values())[-2]
-            f_list.append(f_best)
-            # print(simplex[0],'\n')
-            
+
             # the centroid excluding the worst point
             summed = 0
             for i in range(n):
@@ -158,7 +196,6 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             
             # reflection
             x_r, alpha, bounds_enforced = self.enforce_bounds(simplex[n], x_c, alpha)
-            
             if x_r not in point_to_value:
                 point_to_value[x_r] = function(x_r)
             f_r = point_to_value[x_r]
@@ -168,14 +205,14 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                     # accept reflection
                     simplex[n] = x_r
                 else:
-                    # expand
+                    # expand 
                     alpha *= 2
                     x_e, alpha, bounds_enforced = self.enforce_bounds(simplex[n], x_c, alpha)
                     if x_e not in point_to_value:
                         point_to_value[x_e] = function(x_e)
                     # is expanded point better than the best?
-                    if point_to_value[x_e] < f_best:
-                        # accept expansion and replace worst point
+                    if (point_to_value[x_e] < f_r):
+                        # accept the expanded point
                         simplex[n] = x_e
                     else:
                         # accept reflection
@@ -233,23 +270,40 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                 # to flush the GUI events
                 fig.canvas.flush_events()
                 time.sleep(0.1)
+        
+            # Order from the lowest (best) to the highest
+            simplex_dict = {}
+            for point in simplex:
+                simplex_dict[tuple(point)] = point_to_value[tuple(point)]
+            simplex_dict = OrderedDict(sorted(simplex_dict.items(), key=lambda item: item[1]))
+            simplex = np.array([key for key in simplex_dict.keys()])
+            simplex_fitness = np.array([simplex_dict[tuple(point)] for point in simplex])
             
-            # re-calculate the convergence criteria
-            delta_simplex = 0
+            # save the current best point
+            self.x_list.append(simplex[0])
+            
+            # calculate convergence criteria
+            f_list.append(list(simplex_dict.values())[0])
+            norm_vec = self.create_normal_vector(simplex, simplex_fitness)
+            
+            angle_list.append(min(self.angle_between(norm_vec,v),
+                                  self.angle_between(norm_vec,-1*v)))
+            g = norm_vec[:-1]/norm_vec[-1]
+            g_list.append(norm(g))
+            size_simplex = 0
             for i in range(n):
-                delta_simplex += np.linalg.norm(simplex[i]-simplex[n])
+                size_simplex += norm(simplex[i]-simplex[n])
+            size_list.append(size_simplex)
+            delta_simplex = np.mean(pdist(simplex))
+            delta_list.append(delta_simplex)
+            
+            if delta_simplex < (np.finfo(np.float32).eps):
+                print("simplex has reached miminum size limit")
+                break
         
-        # Order from the lowest (best) to the highest
-        simplex_dict = {}
-        for point in simplex:
-            simplex_dict[tuple(point)] = point_to_value[tuple(point)]
-        simplex_dict = OrderedDict(sorted(simplex_dict.items(), key=lambda item: item[1]))
-        simplex = np.array([key for key in simplex_dict.keys()])
-        f_list.append(list(simplex_dict.values())[0])
-        
-        self.x_list.append(simplex[0])
+        self.f_list = f_list
         self.iterations = iters
         self.function_calls = function.counter
         self.solution = simplex[0]
         self.function_value = function(simplex[0])
-        self.convergence = f_list
+        self.convergence = g_list

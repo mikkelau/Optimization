@@ -97,7 +97,7 @@ def pinpoint(alpha1, alpha4, f_current, f1, f4, slope_current, mu1, mu2, functio
                     break # nailed it
         
         # enforce minimum step. Sometimes the step can get too small, especially when using estimations of the gradient
-        if ((alpha4-alpha1) < (np.finfo(np.float32).eps)**(1/3)):
+        if (max(alpha4,alpha1) < (np.finfo(np.float32).eps)**(1/3)):
             if (f2>f3):
                 X3 = X+alpha3*p_dir
                 return f3, gradients(X3, function), alpha3

@@ -11,7 +11,7 @@ import numpy as np
 def method(g, x, alpha, hessian, function, gradients): # g is a list, not an array
     
     if (method.iters%2 == 0):
-        p = np.array([-1*i/norm(g) for i in g])
+        p = -1*(g/norm(g))
         
     else:
         # print('utilized beta')
@@ -22,10 +22,10 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
         beta = np.dot(g, g-method.g_old)/np.dot(method.g_old, method.g_old) 
         
         beta = max(0.0,beta) # force Beta to not be negative
-        p = np.array([-1*i/norm(g) for i in g])+beta*method.p_old
+        p = -1*(g/norm(g))+beta*method.p_old
     
-    # normalize p
-    p = p/norm(p)
+        # normalize p
+        p = p/norm(p)
     
     if method.iters == 0:
         alpha = 1 # this is totally arbitrary, not sure what a good size is

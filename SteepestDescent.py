@@ -10,11 +10,8 @@ import numpy as np
 
 def method(g, x, alpha, hessian, function, gradients):
 
-    p = np.array([-1*i/norm(g) for i in g])
-    
-    # normalize p
-    p = p/norm(p)
-    
+    p = -1*(g/norm(g))
+
     if (method.iters == 0):
         alpha = 1 # this is totally arbitrary, not sure what a good size is
     else:
