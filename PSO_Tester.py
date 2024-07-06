@@ -6,6 +6,7 @@ Created on Sat Jun 22 19:44:19 2024
 """
 
 from optimizer_PSO import ParticleSwarmOptimizer 
+from random import random
 
 from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
 # from Brachistochrone import function, upper_bounds, lower_bounds
@@ -20,16 +21,15 @@ from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessia
 # from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian
 
 
-# seed_num = 1
+seed_num = 1
 max_iters = 50
-# seed(seed_num)
 numRuns = 1
 
 for runNum in range(numRuns):
     # initial guess
 
     # initialize the optimizer
-    optimizer = ParticleSwarmOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_particles=True, num_pops=33) 
+    optimizer = ParticleSwarmOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_swarm=True, num_pops=33, seed_num=1) 
     
     # call optimize
     optimizer.optimize()
