@@ -7,6 +7,8 @@ Created on Tue Jan  3 14:06:35 2023
 from numpy import array
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import copy
+import numpy as np
 
 class Optimizer:
     def __init__(self, function, upper_bounds, lower_bounds, max_iters):
@@ -30,7 +32,10 @@ class Optimizer:
     def convergence_plot(self):
         plt.figure()
         plt.yscale("log")
-        plt.plot(self.convergence)
+        convergence = np.array(self.convergence,dtype=float)
+        if convergence[-1] <= 0:
+            convergence = (convergence-convergence[-1]+1.0)
+        plt.plot(convergence)
         plt.grid()
         plt.xlabel('ITERATIONS',fontweight='bold')
         plt.ylabel('CONVERGENCE',fontweight='bold')

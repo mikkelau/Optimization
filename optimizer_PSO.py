@@ -69,7 +69,9 @@ class ParticleSwarmOptimizer(optimizer.Optimizer):
         # sample the solution space
         if self.seed_num:
             seed(self.seed_num)
-        engine = qmc.LatinHypercube(d=n,seed=self.seed_num)
+            engine = qmc.LatinHypercube(d=n,seed=self.seed_num)
+        else:
+            engine = qmc.LatinHypercube(d=n)
         sample = engine.random(n=num_pops)
         points = qmc.scale(sample, lower_bounds, upper_bounds)
         
@@ -91,7 +93,7 @@ class ParticleSwarmOptimizer(optimizer.Optimizer):
             fig = self.contour_plot()
             line1, = plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none',linestyle='none')
             # plot best point
-            line2, = plt.plot(x_best,c='green',marker='o',markerfacecolor='none',linestyle='none')
+            line2, = plt.plot([x_best[0]],[x_best[1]],c='green',marker='o',markerfacecolor='none',linestyle='none')
             
             # to flush the GUI events
             fig.canvas.flush_events()
