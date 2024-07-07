@@ -9,6 +9,9 @@ from numpy.linalg import norm
 import numpy as np
 
 def method(g, x, alpha, hessian, function, gradients): # g is a list, not an array
+
+    if isinstance(g,list):
+        g = np.array(g)
     
     if (method.iters%2 == 0):
         p = -1*(g/norm(g))

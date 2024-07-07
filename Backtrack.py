@@ -34,9 +34,9 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
             # print('new alpha:',alpha_new)
             
             # Enforce the minimum step
-            if (alpha_new < (np.finfo(np.float32).eps)**(1/3)): # minimum step defined as epsilon^0.33
+            if (alpha_new < (np.finfo(np.float32).eps)): # minimum step
                 # print('enforcing minimum step')
-                alpha_new = (np.finfo(np.float32).eps)**(1/3)
+                alpha_new = (np.finfo(np.float32).eps)
                 minimum_step_enforced = True
 
             # update quantities

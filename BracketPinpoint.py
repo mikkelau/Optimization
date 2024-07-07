@@ -68,9 +68,9 @@ def pinpoint(alpha_low, alpha_high, f_current, f_low, f_high, slope_current, slo
     while True:
         # enforce minimum step
         minimum_step_enforced = False
-        if max(alpha_low,alpha_high) < (np.finfo(np.float32).eps)**(1/3):
+        if max(alpha_low,alpha_high) < (np.finfo(np.float32).eps):
             # print("minimum step enforced")
-            alpha_p = (np.finfo(np.float32).eps)**(1/3)
+            alpha_p = (np.finfo(np.float32).eps)
             minimum_step_enforced = True
         else:
             alpha_p = interpolate(alpha_low, alpha_high, f_low, f_high, slope_low, slope_high)
