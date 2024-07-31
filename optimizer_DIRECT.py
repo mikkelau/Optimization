@@ -13,19 +13,22 @@ from numpy.linalg import norm
 import copy
 
 class DIRECTOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, eps=1e-4):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, eps=1e-4, plot_points=False):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.x_list = []
         self.f_list = []
         self.tol = tol
         self.eps = eps
+        self.plot_points=plot_points
         
-    def contour_plot(self,points):
+    def contour_plot(self, points=None):
         if len(self.upper_bounds) == 2:
             # enable interactive mode
             plt.ion()
             fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
             # plot the points that got passed in
+            if not points:
+                points = self.x_list
             plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
             return fig
         else:
@@ -174,7 +177,6 @@ class DIRECTOptimizer(optimizer.Optimizer):
             iters += 1
             
         # plot the final complex hull
-        self.x_list.append(x_best)    
         S = self.find_convex_hull(pt_dict)
         scatter_x = []
         scatter_y = []
@@ -193,10 +195,19 @@ class DIRECTOptimizer(optimizer.Optimizer):
         plt.grid()
         plt.xlabel('d',fontweight='bold')
         plt.ylabel('f',fontweight='bold')
-        
+            
+        self.x_list.append(x_best) 
         self.f_list.append(f_min)
         self.iterations = iters
         self.function_calls = function.counter
         self.solution = x_best
         self.function_value = f_min
         self.convergence = self.f_list
+        
+        # plot all the points tested
+        if self.plot_points and n==2:
+            # enable interactive mode
+            # plt.ion()
+            MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
+            points = np.array(list(pt_dict.keys()))
+            plt.scatter([i[0] for i in points],[i[1] for i in points], edgecolors='r',facecolors='none')
