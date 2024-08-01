@@ -11,8 +11,9 @@ import FiniteDifference
 import numpy as np
 
 class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
+        self.tol = tol
         
     def enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds):
         bounds_enforced = False
@@ -64,7 +65,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         alpha = 1
         x = x0
 
-        while ((norm(g) > 1e-6) and (method.iters < max_iters)):
+        while ((norm(g) > self.tol) and (method.iters < max_iters)):
             
             # choose a search direction. should pass out a search direction and initial guess for alpha
             p, alpha_init = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
