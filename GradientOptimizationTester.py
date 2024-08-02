@@ -8,8 +8,9 @@ Created on Fri Jul 22 18:48:35 2022
 from optimizer_linesearch import LineSearchOptimizer 
 from numpy import array
 from random import random, seed
+import numpy as np
 
-from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
+from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol 
 # from Brachistochrone import function, upper_bounds, lower_bounds
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian # has local minima
@@ -19,20 +20,21 @@ from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessia
 # from BukinFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from EasomFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from RsquaredPrimes import function
-# from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian
+# from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian # tests boundary behavior
+# from JonesFunction import function, lower_bounds, upper_bounds, gradients, hessian
 
 from SteepestDescent import method
-# from ConjugateGradient import method
+# from ConjugateGradient import method # should be used with BracketPinpoint or GoldenSectionSearch
 # from NewtonsMethod import method
 # from BFGS import method
 
 # from Backtrack import linesearch
-from BracketPinpoint import linesearch
+# from BracketPinpoint import linesearch
+from GoldenSectionSearch import linesearch
 # from NewtonsMethod import linesearch # this just accepts the step as-is
-# from GoldenSectionSearch import linesearch
 
-# seed_num = 1
-max_iters = 500
+# seed_num = 3
+max_iters = 300
 guess_range = [upper_bounds[0]-lower_bounds[0],upper_bounds[1]-lower_bounds[1]]
 nVar = len(guess_range)
 # seed(seed_num)
@@ -44,14 +46,16 @@ numRuns = 1
 for runNum in range(numRuns):
     # initial guess
     guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
+    # guess = array([-1,2]) # bean
     # guess = array([9,-1]) # twospring
     # print('initial guess:',guess)
 
     # initialize the optimizer
-    linesearch_optimizer = LineSearchOptimizer(function, upper_bounds, lower_bounds, max_iters)
+    linesearch_optimizer = LineSearchOptimizer(function, upper_bounds, lower_bounds, max_iters, min_step=np.finfo(np.float32).eps**(1/1))
     
     # call optimize
-    linesearch_optimizer.optimize(method, linesearch, guess)
+    linesearch_optimizer.optimize(method, linesearch, guess, gradients=gradients, hessian=hessian)
+    # linesearch_optimizer.optimize(method, linesearch, guess)
     
     # print out important values
     linesearch_optimizer.final_printout()

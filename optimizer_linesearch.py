@@ -11,9 +11,10 @@ import FiniteDifference
 import numpy as np
 
 class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, min_step=(np.finfo(np.float32).eps)**(1/3)):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.tol = tol
+        self.min_step = min_step
         
     def enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds):
         bounds_enforced = False
@@ -38,9 +39,9 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         
         g_list = []
         function = self.function
-        max_iters = self.max_iters
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
+        min_step = self.min_step
         
         function.counter = 0
         method.iters = 0
@@ -65,19 +66,19 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         alpha = 1
         x = x0
 
-        while ((norm(g) > self.tol) and (method.iters < max_iters)):
+        while ((norm(g) > self.tol) and (method.iters < self.max_iters)):
             
             # choose a search direction. should pass out a search direction and initial guess for alpha
             p, alpha_init = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
             
             # linesearch
-            f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds)
+            f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step)
                 
             # check if alpha was forced to 0 (due to boundary enforcement)
             if (alpha == 0.0):
                 
                 # travel along the boundary by enforcing bounds
-                xnew = x+[alpha_init*i for i in p]
+                xnew = x+alpha_init*p
                 # enforce bounds
                 xnew = np.clip(xnew, lower_bounds, upper_bounds)
                 
@@ -95,10 +96,10 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                     break
 
                 # redo the line search
-                f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds)
+                f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step)
                 
                 # if you're taking really small steps, just quit
-                if alpha <= (np.finfo(np.float32).eps)**(1/3):
+                if norm(alpha*p) <= min_step:
                     print('method got stuck on boundary')
                     break               
             
