@@ -8,8 +8,12 @@ Created on Sat Nov 19 13:56:55 2022
 import numpy as np
 # from LU_factor import LU_factor
 from numpy.linalg import norm
+import os
 
 def method(g, x, alpha, hessian, function, gradients):  # g is a list, not an array
+
+    if not hasattr(method, 'name'):
+        method.name = os.path.basename(__file__).split('.')[0]
 
     I = np.identity(len(x))
     

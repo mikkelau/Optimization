@@ -7,11 +7,12 @@ Created on Fri Jul 22 17:11:42 2022
 
 from Cubic_Interp import interpolate, plot_linesearch
 # from Quadratic_Interp import interpolate, plot_linesearch
-#from Bisect import interpolate
+# from Bisect import interpolate
 import numpy as np
 from optimizer_linesearch import LineSearchOptimizer
+from numpy.linalg import norm
 
-def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds): 
+def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds, lower_bounds, min_step): 
     # g is the gradient at current point
     # I pass in f_current to avoid another function eval
     
@@ -27,6 +28,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     slope_current = np.dot(g, p_dir) 
     slope1 = slope_current
     first = True
+    bounds_enforced = False
     while True:
         # enforce bounds      
         alpha2, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha2, X, p_dir, upper_bounds, lower_bounds)
@@ -39,7 +41,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
         slope2 = np.dot(g2, p_dir) # this is the dot product
         if (f2 > f_current+mu1*alpha2*slope_current) or (not first and (f2 > f1)): # new point is worse than current point
             # There is a point that satisfies strong wolfe conditions between current and guess, so find it
-            f_eval, g_eval, alpha = pinpoint(alpha1, alpha2, f_current, f1, f2, slope_current, slope1, slope2, mu1, mu2, function, gradients, X, p_dir)            
+            f_eval, g_eval, alpha = pinpoint(alpha1, alpha2, f_current, f1, f2, slope_current, slope1, slope2, mu1, mu2, function, gradients, X, p_dir, bounds_enforced, min_step)            
             break
         # otherwise, your guess point satisfies the first strong wolfe condition, so check if it satisfies the second
         if (abs(slope2) <= -1*mu2*slope_current): # if the slope at the guess location satisfies strong wolfe condition
@@ -47,7 +49,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
             break
         # otherwise, check which: you have overshot or undershot the point that you want
         elif (slope2 >= 0): # you have overshot the good point, so you know the good point exists between current point and guess
-            f_eval, g_eval, alpha = pinpoint(alpha2, alpha1, f_current, f2, f1, slope_current, slope2, slope1, mu1, mu2, function, gradients, X, p_dir)
+            f_eval, g_eval, alpha = pinpoint(alpha2, alpha1, f_current, f2, f1, slope_current, slope2, slope1, mu1, mu2, function, gradients, X, p_dir, bounds_enforced, min_step)
             break
         # how can it get stuck here? If alpha passed in is 0!
         else: # you are still moving downward at a high slope, extend your guess
@@ -57,23 +59,31 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
                 break
             else:
                 alpha1 = alpha2
+                f1 = f2
                 alpha2 = sigma*alpha2
         first = False
     
     return f_eval, g_eval, alpha
 
-def pinpoint(alpha_low, alpha_high, f_current, f_low, f_high, slope_current, slope_low, slope_high, mu1, mu2, function, gradients, X, p_dir):
+def pinpoint(alpha_low, alpha_high, f_current, f_low, f_high, slope_current, slope_low, slope_high, mu1, mu2, function, gradients, X, p_dir, bounds_enforced, min_step):
     k = 0
     
     while True:
         # enforce minimum step
         minimum_step_enforced = False
-        if max(alpha_low,alpha_high) < (np.finfo(np.float32).eps):
-            # print("minimum step enforced")
-            alpha_p = (np.finfo(np.float32).eps)
+        if norm(max(alpha_low,alpha_high)*p_dir) < min_step:
+            print("minimum step enforced")
             minimum_step_enforced = True
+            if bounds_enforced:
+                alpha_p = max(alpha_low,alpha_high)
+            else:
+                alpha_p = min_step/norm(p_dir)
         else:
             alpha_p = interpolate(alpha_low, alpha_high, f_low, f_high, slope_low, slope_high)
+            if norm(alpha_p*p_dir) < min_step:
+                print("minimum step enforced")
+                minimum_step_enforced = True
+                alpha_p = min_step/norm(p_dir)
             
         Xnew = X+alpha_p*p_dir
         f_p = function(Xnew)

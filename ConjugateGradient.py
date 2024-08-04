@@ -7,8 +7,12 @@ Created on Fri Jul 22 19:54:31 2022
 
 from numpy.linalg import norm
 import numpy as np
+import os
 
 def method(g, x, alpha, hessian, function, gradients): # g is a list, not an array
+
+    if not hasattr(method, 'name'):
+        method.name = os.path.basename(__file__).split('.')[0]
 
     if isinstance(g,list):
         g = np.array(g)

@@ -72,7 +72,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
             p, alpha_init = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
             
             # linesearch
-            f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step)
+            f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step, method.name)
                 
             # check if alpha was forced to 0 (due to boundary enforcement)
             if (alpha == 0.0):
@@ -96,7 +96,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                     break
 
                 # redo the line search
-                f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step)
+                f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step, method.name)
                 
                 # if you're taking really small steps, just quit
                 if norm(alpha*p) <= min_step:
