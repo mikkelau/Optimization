@@ -104,7 +104,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                     break               
             
             # update x
-            x = x+[alpha*i for i in p]
+            x = x+alpha*p
             
             # store the updated point and associated gradient
             self.x_list.append(x)
