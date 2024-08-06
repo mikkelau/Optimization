@@ -24,18 +24,17 @@ def MakeContourPlot(function,upper_lims,lower_lims):
             
     # create filled contour plot
     fig, ax = plt.subplots(1, 1)
-    if ((Z.max() > 1000*Z.min()) and (Z.min() > 0)): # check if a logarithmic contour plot is needed
-        # maybe if Z.min is less than 0, shift everything up to be able to plot on a logarithmic contour plot?
-        ax.contourf(X, Y, Z, 15, locator=ticker.LogLocator())
+    if ((Z.max() > 1000*Z.min()) and (Z.min() > 0)): # check if a logarithmic contour plot is needed        
+        cs = ax.contourf(X, Y, Z, locator=ticker.LogLocator())
+        # plot colorbar
+        cbar = fig.colorbar(cs, format='%.0e')
     else:
-        ax.contourf(X, Y, Z, 15)
+        cs = ax.contourf(X, Y, Z, 16)
+        # plot colorbar
+        cbar = fig.colorbar(cs)
         
     # set the axes to be on the same scale
-    ax.set_aspect('equal', adjustable='box')
-
-    # plot colorbar
-    pcm = ax.get_children()[2] #get the mappable, the 1st and the 2nd are the x and y axes
-    plt.colorbar(pcm,ax=ax)   
+    ax.set_aspect('equal', adjustable='box')  
     
     cfm = plt.get_current_fig_manager()
     cfm.window.activateWindow()
