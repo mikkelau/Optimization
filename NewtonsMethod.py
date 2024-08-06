@@ -24,16 +24,14 @@ def method(g, x, alpha, hessian, function, gradients): # g is a list, not an arr
     
     return p, alpha
 
-def linesearch(f, function, g, gradients, x, p, alpha, upper_bounds, lower_bounds):
-    
+def linesearch(f, function, g, gradients, x, p, alpha, upper_bounds, lower_bounds, min_step, method_name):
     alpha = 1.0
     
     # enforce bounds
-    alpha, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha, x, p, upper_bounds, lower_bounds)
+    alpha, Xnew, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha, x, p, upper_bounds, lower_bounds)
     
     # update x
-    Xnew = x+alpha*p
     f_eval = function(Xnew)
     g_eval = gradients(Xnew,function)
     
-    return f_eval, g_eval, alpha
+    return f_eval, g_eval, alpha, Xnew

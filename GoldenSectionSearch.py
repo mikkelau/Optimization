@@ -27,21 +27,21 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     # bracket
     while True:
         # enforce bounds      
-        alpha4, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha4, X, p_dir, upper_bounds, lower_bounds)
-                    
-        Xnew = X+alpha4*p_dir
+        alpha4, Xnew, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha4, X, p_dir, upper_bounds, lower_bounds)
+        
         f4 = function(Xnew)
         f_eval = f4
         g4 = gradients(Xnew, function)
         g_eval = g4
         slope4 = np.dot(g4, p_dir) # this is the dot product
+        
         # see if bound enforcement caused step size to go below min_step
         if norm(alpha4*p_dir) <= min_step and bounds_enforced: 
             alpha = alpha4
             break
         if (f4 > f_current+mu1*alpha4*slope_current) or (not first and (f4 > f1)): # new point is worse than current point
             # There is a point that satisfies strong wolfe conditions between current and guess, so find it
-            f_eval, g_eval, alpha = pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradients, X, p_dir, min_step)            
+            f_eval, g_eval, alpha, Xnew = pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradients, X, p_dir, min_step)            
             break
         # otherwise, your guess point satisfies the first strong wolfe condition, so check if it satisfies the second
         if (abs(slope4) <= -1*mu2*slope_current): # if the slope at the guess location satisfies strong wolfe condition
@@ -49,7 +49,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
             break
         # otherwise, check which: you have overshot or undershot the point that you want
         elif (slope4 >= 0): # you have overshot the good point, so you know the good point exists between current point and guess
-            f_eval, g_eval, alpha = pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradients, X, p_dir, min_step)
+            f_eval, g_eval, alpha, Xnew = pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradients, X, p_dir, min_step)
             break
         # how can it get stuck here? If alpha passed in is 0!
         else: # you are still moving downward at a high slope, extend your guess
@@ -63,7 +63,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
                 alpha4 = 2*alpha4 # could extend by using phi, but testing showed that just doubling the step usually worked best
         first = False
     
-    return f_eval, g_eval, alpha
+    return f_eval, g_eval, alpha, Xnew
 
 def pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradients, X, p_dir, min_step):
     phi = (1+5**0.5)/2
@@ -94,6 +94,7 @@ def pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradi
                     f_p = f2
                     g_p = g2
                     alpha_p = alpha2
+                    Xnew = X2
                     break # nailed it
         if alpha3==None: # if not
             # calculate second interior point
@@ -109,20 +110,21 @@ def pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradi
                     f_p = f3
                     g_p = g3
                     alpha_p = alpha3
+                    Xnew = X3
                     break # nailed it
         
         # if too many tries in the loop, just take the best of what you have.
         if k > 6:
             if (f2>f3):
-                X3 = X+alpha3*p_dir
+                Xnew = X+alpha3*p_dir
                 f_p = f3
-                g_p = gradients(X3, function)
+                g_p = gradients(Xnew, function)
                 alpha_p = alpha3
                 break
             else:
-                X2 = X+alpha2*p_dir
+                Xnew = X+alpha2*p_dir
                 f_p = f2
-                g_p = gradients(X2, function)
+                g_p = gradients(Xnew, function)
                 alpha_p = alpha2
                 break
         
@@ -151,4 +153,4 @@ def pinpoint(alpha1, alpha4, f_current, slope_current, mu1, mu2, function, gradi
         f_p = function(Xnew)
         g_p = gradients(Xnew, function)
         
-    return f_p, g_p, alpha_p 
+    return f_p, g_p, alpha_p, Xnew 

@@ -28,11 +28,15 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                 # solve for the alpha that would land on the boundary
                 alpha_boundary = (lower_bounds[i]-X[i])/p_dir[i]
                 alpha_new = min(alpha_new,alpha_boundary) # this makes sure we aren't overwriting an alpha that was already solved for when checking a different bound
+        
+        # sometimes due to rounding errors the new alpha can result in points just outside the boundary
+        X_new = np.clip(X+alpha_new*p_dir, lower_bounds, upper_bounds)
+        
         if alpha_new < alpha:
             bounds_enforced = True
             alpha = alpha_new
-        
-        return alpha, bounds_enforced
+                
+        return alpha, X_new, bounds_enforced
     
     def optimize(self, method, linesearch, x0, gradients=FiniteDifference.gradients, hessian=FiniteDifference.hessian):
         self.guess = x0
@@ -72,7 +76,7 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
             p, alpha_init = method(g, x, alpha, hessian, function, gradients) # pass in H or hessian?
             
             # linesearch
-            f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step, method.name)
+            f, g, alpha, x = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step, method.name)
                 
             # check if alpha was forced to 0 (due to boundary enforcement)
             if (alpha == 0.0):
@@ -96,15 +100,12 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
                     break
 
                 # redo the line search
-                f, g, alpha = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step, method.name)
+                f, g, alpha, x = linesearch(f, function, g, gradients, x, p, alpha_init, upper_bounds, lower_bounds, min_step, method.name)
                 
                 # if you're taking really small steps, just quit
                 if norm(alpha*p) <= min_step:
                     print('method got stuck on boundary')
                     break               
-            
-            # update x
-            x = x+alpha*p
             
             # store the updated point and associated gradient
             self.x_list.append(x)

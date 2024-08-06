@@ -18,16 +18,16 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
     rho = 0.5
     
     # enforce bounds      
-    alpha, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds)
+    alpha, Xnew, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha, X, p_dir, upper_bounds, lower_bounds)
                 
     # if alpha is less than the minimum step, define it as 0
     if ((norm(alpha*p_dir) < min_step) and (bounds_enforced == True)): 
         alpha = 0.0
         f_eval = f_current
         g_eval = g
+        Xnew = X
     else:
         minimum_step_enforced = False
-        Xnew = X+alpha*p_dir
         dir_slope = np.dot(g, p_dir)  # this is the dot product
         f_eval = function(Xnew)
         entered_loop = False
@@ -57,7 +57,7 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
                 alpha_new = alpha/rho
                 
                 # enforce bounds      
-                alpha_new, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha_new, X, p_dir, upper_bounds, lower_bounds)
+                alpha_new, Xnew, bounds_enforced = LineSearchOptimizer.enforce_bounds(alpha_new, X, p_dir, upper_bounds, lower_bounds)
                 
                 f_new = function(X+alpha_new*p_dir)
                 
@@ -69,4 +69,4 @@ def linesearch(f_current, function, g, gradients, X, p_dir, alpha, upper_bounds,
             
         g_eval = gradients(Xnew, function)
     
-    return f_eval, g_eval, alpha
+    return f_eval, g_eval, alpha, Xnew
