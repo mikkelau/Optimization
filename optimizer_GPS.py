@@ -14,7 +14,6 @@ Possible improvements:
 """
 
 import optimizer
-from MakeContourPlot import MakeContourPlot
 import numpy as np
 from collections import OrderedDict
 import matplotlib.pyplot as plt
@@ -32,7 +31,7 @@ class GPSOptimizer(optimizer.Optimizer):
         if len(self.guess) == 2:
             # enable interactive mode
             plt.ion()
-            fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
+            fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
             # plot the points that got passed in
             plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
             return fig

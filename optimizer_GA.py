@@ -6,7 +6,6 @@ Created on Fri Jun  7 11:43:43 2024
 """
 
 import optimizer
-from MakeContourPlot import MakeContourPlot
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import qmc
@@ -25,7 +24,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         if len(self.upper_bounds) == 2:
             # enable interactive mode
             plt.ion()
-            fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
+            fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
             # plot the points that got passed in
             plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none')
             return fig

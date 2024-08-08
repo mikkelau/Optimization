@@ -6,7 +6,6 @@ Created on Tue May 28 07:40:13 2024
 """
 
 import optimizer
-from MakeContourPlot import MakeContourPlot
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import norm
@@ -25,7 +24,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
         if len(self.upper_bounds) == 2:
             # enable interactive mode
             plt.ion()
-            fig = MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
+            fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
             # plot the points that got passed in
             if not points:
                 points = self.x_list
