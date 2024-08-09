@@ -27,8 +27,10 @@ class ParticleSwarmOptimizer(optimizer.Optimizer):
         self.plot_swarm = plot_swarm
         self.seed_num = seed_num
         
-    def contour_plot(self,points=[]):
+    def contour_plot(self,points=None):
         if len(self.upper_bounds) == 2:
+            if points is None:
+                points = self.x_list
             # enable interactive mode
             plt.ion()
             fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
@@ -89,7 +91,9 @@ class ParticleSwarmOptimizer(optimizer.Optimizer):
         
         # plot initial population
         if self.plot_swarm and n==2:
-            fig = self.contour_plot()
+            # enable interactive mode
+            plt.ion()
+            fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
             line1, = plt.plot([i[0] for i in points],[i[1] for i in points],c='red',marker='o',markerfacecolor='none',linestyle='none')
             # plot best point
             line2, = plt.plot([x_best[0]],[x_best[1]],c='green',marker='o',markerfacecolor='none',linestyle='none')

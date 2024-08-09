@@ -207,6 +207,6 @@ class DIRECTOptimizer(optimizer.Optimizer):
         if self.plot_points and n==2:
             # enable interactive mode
             # plt.ion()
-            MakeContourPlot(self.function, self.upper_bounds, self.lower_bounds)
+            self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
             points = np.array(list(pt_dict.keys()))
             plt.scatter([i[0] for i in points],[i[1] for i in points], edgecolors='r',facecolors='none')

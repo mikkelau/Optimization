@@ -27,8 +27,10 @@ class GPSOptimizer(optimizer.Optimizer):
         self.f_list = []
         self.tol = tol
         
-    def contour_plot(self,points):
+    def contour_plot(self,points=None):
         if len(self.guess) == 2:
+            if not points:
+                points = self.x_list
             # enable interactive mode
             plt.ion()
             fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)

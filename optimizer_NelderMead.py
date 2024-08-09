@@ -23,8 +23,10 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         self.tol = tol
         self.plot_simplex = plot_simplex
         
-    def contour_plot(self,points):
+    def contour_plot(self,points=None):
         if len(self.guess) == 2:
+            if points is None:
+                points = self.x_list
             # enable interactive mode
             plt.ion()
             fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)

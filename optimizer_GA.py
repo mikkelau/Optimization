@@ -20,8 +20,10 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         self.plot_generations = plot_generations
         self.num_pops = num_pops
         
-    def contour_plot(self,points=[]):
+    def contour_plot(self,points=None):
         if len(self.upper_bounds) == 2:
+            if points is None:
+                points = self.x_list
             # enable interactive mode
             plt.ion()
             fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
