@@ -309,14 +309,16 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             
             angle_list.append(min(self.angle_between(norm_vec,v),
                                   self.angle_between(norm_vec,-1*v)))
-            g = norm_vec[:-1]/norm_vec[-1]
-            g_list.append(norm(g))
             size_simplex = 0
             for i in range(len(simplex)-1):
                 size_simplex += norm(simplex[i]-simplex[-1])
             size_list.append(size_simplex)
             delta_simplex = np.mean(pdist(simplex))
             delta_list.append(delta_simplex)
+            if norm_vec[-1] == 0.0:
+                break
+            g = norm_vec[:-1]/norm_vec[-1]
+            g_list.append(norm(g))
             
             if delta_simplex < (np.finfo(np.float32).eps):
                 print("simplex has reached miminum size limit")
