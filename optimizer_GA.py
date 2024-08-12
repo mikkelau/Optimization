@@ -153,20 +153,16 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             # mutation
             # calculate the mutation parameters using scale and shrink
             S = np.array([scale*(1-shrink*gen/max_iters)*(upper_bounds[n]-lower_bounds[n]) for n in range(n)])
-            fitness_children = np.empty((num_pops,1))
             mutation_flag = [random.random() < mutfrac for i in range(n)]
             # do the mutation
-            for i, child in enumerate(children):
+            for i in range(len(children)):
                 randNum = np.array([np.random.randn() for j in range(n)])
-                child += S*mutation_flag*randNum
-                
-                # enforce bounds
-                child = np.clip(child, lower_bounds, upper_bounds)
-
-                # calculate fitness of the child
-                fitness_children[i] = function(child)
-                
+                children[i] += S*mutation_flag*randNum
+            # enforce bounds
+            children = np.clip(children, lower_bounds, upper_bounds)    
+            
             # Choose next generation
+            fitness_children = np.array([function(child) for child in children])
             parents_with_children = np.vstack((points,children))
             all_fitness = np.append(fitness, fitness_children)
             idx_best = np.argpartition(all_fitness,num_pops)

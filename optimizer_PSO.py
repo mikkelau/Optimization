@@ -82,7 +82,7 @@ class ParticleSwarmOptimizer(optimizer.Optimizer):
         f_best = min(fitness)
         x_best = copy.deepcopy(points[idx_best])
         self.f_list.append(f_best)
-        self.x_list.append(points[idx_best])
+        self.x_list.append(x_best)
         
         # initialize velocity, historical best point, and historical best fitness arrays 
         velocities = np.zeros((len(points),n))
