@@ -50,9 +50,7 @@ class ParticleSwarmOptimizer(optimizer.Optimizer):
         max_beta = self.max_beta
         max_gamma = self.max_gamma
         max_delta = self.max_delta
-        
-        function.counter = 0
-        
+                
         n = len(upper_bounds)
         
         # determine max_delta

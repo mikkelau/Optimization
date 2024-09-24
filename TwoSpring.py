@@ -24,7 +24,8 @@ def function(X):
 
     f = 0.5*k1*((((((l1+x)**2)+(y**2))**0.5)-l1)**2)+0.5*k2*((((((l2-x)**2)+(y**2))**0.5)-l2)**2)-mg*y
     
-    function.counter += 1
+    if hasattr(function,'counter'):
+        function.counter += 1
     
     return f
 

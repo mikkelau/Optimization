@@ -96,7 +96,6 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         g_list = []
         size_list = []
         
-        function.counter = 0
         iters = 0
         
         # enforce bounds in initial guess

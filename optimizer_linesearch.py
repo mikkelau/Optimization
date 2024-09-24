@@ -47,7 +47,6 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         lower_bounds = self.lower_bounds
         min_step = self.min_step
         
-        function.counter = 0
         method.iters = 0
         
         # enforce bounds in initial guess

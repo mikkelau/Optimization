@@ -22,7 +22,9 @@ def function(x):
     for i in range(len(x)-1):
         S += (100*((x[i+1]-x[i]**2)**2)+(1-x[i])**2)
    
-    function.counter += 1
+    if hasattr(function,'counter'):
+        function.counter += 1
+        
     return S
 
 def gradients(X, function):

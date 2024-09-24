@@ -110,7 +110,6 @@ class DIRECTOptimizer(optimizer.Optimizer):
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
         
-        function.counter = 0
         iters = 0
         
         n = len(upper_bounds)

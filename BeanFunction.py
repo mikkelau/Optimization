@@ -18,7 +18,8 @@ def function(X):
 
     f = (1-x)**2+(1-y)**2+0.5*(2*y-x**2)**2
     
-    function.counter += 1
+    if hasattr(function,'counter'):
+        function.counter += 1
     
     return f
 

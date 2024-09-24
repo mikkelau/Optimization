@@ -16,7 +16,10 @@ def function(X):
     y = X[1]
     
     f = -1*cos(x)*cos(y)*exp(-1*(((x-pi)**2)+((y-pi)**2)))
-    function.counter += 1
+    
+    if hasattr(function,'counter'):
+        function.counter += 1
+        
     return f
 
 def gradients(X, function):

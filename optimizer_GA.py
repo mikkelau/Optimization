@@ -87,9 +87,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
         num_pops = self.num_pops
-        
-        function.counter = 0
-        
+                
         n = len(upper_bounds)
         
         # mutation parameters

@@ -15,7 +15,10 @@ def function(X):
     y = X[1]
     
     f = ((x+2*y-7)**2)+((2*x+y-5)**2)
-    function.counter += 1
+    
+    if hasattr(function,'counter'):
+        function.counter += 1
+        
     return f
 
 def gradients(X, function):

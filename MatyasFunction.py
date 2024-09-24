@@ -14,7 +14,10 @@ def function(X):
     x = X[0]
     y = X[1]
     f = 0.26*((x**2)+(y**2))-0.48*x*y   
-    function.counter += 1
+    
+    if hasattr(function,'counter'):
+        function.counter += 1
+        
     return f
 
 def gradients(X, function):

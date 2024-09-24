@@ -74,7 +74,6 @@ class GPSOptimizer(optimizer.Optimizer):
         lower_bounds = self.lower_bounds
         f_list = []
         
-        function.counter = 0
         iters = 0
         
         # enforce bounds in initial guess

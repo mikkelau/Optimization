@@ -16,7 +16,10 @@ def function(X):
     y = X[1]
     
     f = 100*sqrt(abs(y-0.01*(x**2)))+0.01*abs(x+10)
-    function.counter += 1
+    
+    if hasattr(function,'counter'):
+        function.counter += 1
+        
     return f
 
 def gradients(X, function):

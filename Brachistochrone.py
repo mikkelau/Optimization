@@ -37,7 +37,8 @@ def function(Y):
     
     f = S
     
-    function.counter += 1
+    if hasattr(function,'counter'):
+        function.counter += 1
 
     return f
     
