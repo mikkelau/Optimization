@@ -22,6 +22,7 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         self.f_list = []
         self.tol = tol
         self.plot_simplex = plot_simplex
+        self.simplex_list = []
         
     def contour_plot(self,points=None):
         if len(self.guess) == 2:
@@ -83,6 +84,8 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         
             
     def optimize(self, x0):
+        fig = plt.figure()        
+
         self.guess = x0
         
         function = self.function
@@ -139,10 +142,12 @@ class NelderMeadOptimizer(optimizer.Optimizer):
                     else:
                         j += 1
                 simplex[i] = simplex[0]+s
-                
+        
+        self.simplex_list.append(simplex)
         # plot current simplex
         if self.plot_simplex and n==2:
             fig,line1 = self.contour_plot(np.vstack([simplex, simplex[0]]))
+            
             # to flush the GUI events
             fig.canvas.flush_events()
             time.sleep(0.3)
@@ -264,14 +269,18 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             for point in simplex:
                 if tuple(point) not in point_to_value:
                     point_to_value[tuple(point)] = function(point)
-                    
+             
+            self.simplex_list.append(simplex)
+            
             # plot current simplex
             if self.plot_simplex and n==2:
+                    
                 # updating the values of the simplex
                 line1.set_xdata([i[0] for i in np.vstack([simplex, simplex[0]])])
                 line1.set_ydata([i[1] for i in np.vstack([simplex, simplex[0]])])
                 # re-drawing the figure
                 fig.canvas.draw()
+                    
                 # to flush the GUI events
                 fig.canvas.flush_events()
                 time.sleep(0.1)

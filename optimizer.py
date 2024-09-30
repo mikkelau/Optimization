@@ -31,7 +31,7 @@ class Optimizer:
         print("\n")
     
     def convergence_plot(self):
-        plt.figure()
+        fig = plt.figure()
         plt.yscale("log")
         convergence = np.array(self.convergence,dtype=float)
         if convergence[-1] <= 0:
@@ -43,7 +43,9 @@ class Optimizer:
         
         # make the iterations axis only show integers
         ax = plt.gca()
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))    
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))   
+        
+        return fig
         
     def make_contour_plot(self,function,upper_lims,lower_lims):
         numpoints = 100

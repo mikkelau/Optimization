@@ -61,13 +61,13 @@ class LineSearchOptimizer(optimizer_gradients.GradientBasedOptimizer):
         if guess_enforced == True:
             print('Bounds enforced for initial guess')
         
-        self.x_list.append(x0)
-        
         f = function(x0)
         g = gradients(x0,function)
         g_list.append(norm(g))
         alpha = 1
         x = x0
+        self.x_list.append(x)
+        self.f_list.append(f)
 
         while ((norm(g) > self.tol) and (method.iters < self.max_iters)):
             
