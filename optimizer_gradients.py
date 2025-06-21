@@ -15,10 +15,12 @@ class GradientBasedOptimizer(optimizer.Optimizer):
         self.x_list = []
         self.f_list = []
         
-    def contour_plot(self):
+    def contour_plot(self,xlabel='',ylabel=''):
         if len(self.guess) == 2:
             fig = self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)
             plt.plot([i[0] for i in self.x_list],[i[1] for i in self.x_list],c='red',marker='o',markerfacecolor='none')
+            plt.xlabel(xlabel,fontweight='bold')
+            plt.ylabel(ylabel,fontweight='bold')
             return fig
         else:
             print("Cannot create contour plot. Number of independent variables needs to be two.\n")
