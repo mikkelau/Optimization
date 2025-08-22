@@ -9,7 +9,12 @@ import matplotlib.pyplot as plt
 def interpolate(alpha1, alpha2, f1, f2, slope1, slope2):
            
     denom = 2*(f2-f1+slope1*(alpha1-alpha2))
-    alpha = (2*alpha1*(f2-f1)+slope1*(alpha1**2-alpha2**2))/denom
+    
+    if denom > 0: # make sure we don't divide by 0
+        alpha = (2*alpha1*(f2-f1)+slope1*(alpha1**2-alpha2**2))/denom
+    else:
+        alpha = 0.5*(alpha1+alpha2)
+        # print('bisected: ill-conditioned')
     
     # make sure interpolated step isn't outside the bracket
     if (((alpha > alpha1) and (alpha > alpha2)) or ((alpha < alpha1) and (alpha < alpha2))):
