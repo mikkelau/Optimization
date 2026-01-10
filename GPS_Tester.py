@@ -7,7 +7,7 @@ from optimizer_GPS import GPSOptimizer
 from numpy import array
 from random import random, seed
 
-from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
+# from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
 # from Brachistochrone import function, upper_bounds, lower_bounds
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian # has local minima
@@ -17,7 +17,7 @@ from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessia
 # from BukinFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from EasomFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from RsquaredPrimes import function
-# from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian
+from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian # tests boundary behavior
 
 
 # seed_num = 1
@@ -32,8 +32,8 @@ numRuns = 1
 
 for runNum in range(numRuns):
     # initial guess
-    # guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
-    guess = array([-2,2])
+    guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
+    # guess = array([-2,2])
     # print('initial guess:',guess)
 
     # initialize the optimizer

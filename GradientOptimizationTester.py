@@ -23,16 +23,19 @@ from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
 # from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian # tests boundary behavior
 # from JonesFunction import function, lower_bounds, upper_bounds, gradients, hessian
 # from HartmannFunction import function, lower_bounds, upper_bounds, gradients, hessian
+# from AircraftPerformace import function, upper_bounds, lower_bounds, gradients, hessian
 
 # from SteepestDescent import method
 # from ConjugateGradient import method # should be used with BracketPinpoint or GoldenSectionSearch
 # from NewtonsMethod import method
 from BFGS import method
+# from ADAM import method
 
 # from Backtrack import linesearch
-# from BracketPinpoint import linesearch
-from GoldenSectionSearch import linesearch
+from BracketPinpoint import linesearch
+# from GoldenSectionSearch import linesearch
 # from NewtonsMethod import linesearch # this just accepts the step as-is
+# from ADAM import linesearch
 
 # seed_num = 4
 max_iters = 300
@@ -56,6 +59,7 @@ for runNum in range(numRuns):
     # initialize the optimizer
     function.counter = 0
     linesearch_optimizer = LineSearchOptimizer(function, upper_bounds, lower_bounds, max_iters, min_step=np.finfo(np.float32).eps**(1/1))
+    linesearch.interpolation = 'quadratic'
     
     # call optimize
     linesearch_optimizer.optimize(method, linesearch, guess, gradients=gradients, hessian=hessian)

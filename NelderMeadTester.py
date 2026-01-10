@@ -44,7 +44,6 @@ for runNum in range(numRuns):
     neldermead_optimizer = NelderMeadOptimizer(function, upper_bounds, lower_bounds, max_iters,plot_simplex=True)
     
     # call optimize
-    function.counter = 0
     neldermead_optimizer.optimize(guess)
     
     # print out important values

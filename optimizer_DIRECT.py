@@ -12,13 +12,13 @@ from numpy.linalg import norm
 import copy
 
 class DIRECTOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, eps=1e-4, plot_points=False):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, tol=1e-6, eps=1e-4, plot_all_points=False):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.x_list = []
         self.f_list = []
         self.tol = tol
         self.eps = eps
-        self.plot_points=plot_points
+        self.plot_all_points=plot_all_points
         
     def contour_plot(self, points=None):
         if len(self.upper_bounds) == 2:
@@ -112,6 +112,9 @@ class DIRECTOptimizer(optimizer.Optimizer):
         
         iters = 0
         
+        # set the function counter to 0
+        function.counter = 0
+        
         n = len(upper_bounds)
         
         t = np.zeros(n)
@@ -203,7 +206,7 @@ class DIRECTOptimizer(optimizer.Optimizer):
         self.convergence = self.f_list
         
         # plot all the points tested
-        if self.plot_points and n==2:
+        if self.plot_all_points and n==2:
             # enable interactive mode
             # plt.ion()
             self.make_contour_plot(self.function, self.upper_bounds, self.lower_bounds)

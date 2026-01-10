@@ -84,7 +84,6 @@ class NelderMeadOptimizer(optimizer.Optimizer):
         
             
     def optimize(self, x0):
-        fig = plt.figure()        
 
         self.guess = x0
         
@@ -152,8 +151,8 @@ class NelderMeadOptimizer(optimizer.Optimizer):
             fig.canvas.flush_events()
             time.sleep(0.3)
 
-            # reset the function counter to 0 so that making the contour plot isn't counted
-            function.counter = 0
+        # set the function counter to 0 so that making the contour plot isn't counted
+        function.counter = 0
             
         # create a dictionary to store points and their corresponding function values
         point_to_value = {}

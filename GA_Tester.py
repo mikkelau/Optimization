@@ -7,17 +7,17 @@ Created on Sun Jun  9 12:27:17 2024
 
 from optimizer_GA import GeneticAlgorithmOptimizer 
 
-from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
+# from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
 # from Brachistochrone import function, upper_bounds, lower_bounds
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian # has local minima
-# from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
+from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
 # from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
 # from BoothFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from BukinFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from EasomFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from RsquaredPrimes import function
-# from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian
+# from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian # tests boundary behavior
 
 
 # seed_num = 1
