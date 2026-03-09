@@ -69,7 +69,7 @@ class SimulatedAnnealingOptimizer(optimizer.Optimizer):
             T = self.temperature(T0,k,max_iters)
             
             # choose a neighboring solution
-            xnew =  x + randn(n) * step_size
+            xnew = np.clip(x+randn(n)*step_size, lower_bounds, upper_bounds) # enforce bounds
             fnew = function(xnew)
             
             # determine probability of accepting new solution
@@ -86,7 +86,7 @@ class SimulatedAnnealingOptimizer(optimizer.Optimizer):
             self.x_list.append(x)
             self.f_list.append(f)
                 
-        self.iterations = k
+        self.iterations = k+1
         self.function_calls = function.counter
         self.solution = x
         self.function_value = f

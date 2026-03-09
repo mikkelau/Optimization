@@ -14,17 +14,17 @@ from numpy import array
 # from Brachistochrone import function, upper_bounds, lower_bounds
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian # has local minima
-from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
+# from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
 # from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
 # from BoothFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from BukinFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from EasomFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from RsquaredPrimes import function
-# from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian # tests boundary behavior
+from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian # tests boundary behavior
 
 
 # seed_num = 1
-max_iters = 1000
+max_iters = 2000
 # seed(seed_num)
 guess_range = np.array(upper_bounds)-np.array(lower_bounds)
 nVar = len(guess_range)
@@ -33,8 +33,9 @@ temp = 10
 
 for runNum in range(numRuns):
     # initial guess
-    # guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
-    guess = array([9,-1]) # twospring
+    guess = array([(random()-0.5)*guess_range[i]+(upper_bounds[i]+lower_bounds[i])/2 for i in range(nVar)])
+    # guess = array([-1,2]) # bean
+    # guess = array([9,-1]) # twospring
     
     # initialize the optimizer
     optimizer = SimulatedAnnealingOptimizer(function, upper_bounds, lower_bounds, max_iters, temp)
