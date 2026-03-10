@@ -22,7 +22,6 @@ from numpy import array
 # from RsquaredPrimes import function
 from Ex5pt10 import function, upper_bounds, lower_bounds, gradients, hessian # tests boundary behavior
 
-
 # seed_num = 1
 max_iters = 2000
 # seed(seed_num)

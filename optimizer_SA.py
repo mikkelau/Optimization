@@ -15,11 +15,13 @@ import math
 from numpy.random import randn
 
 class SimulatedAnnealingOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, T0):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, T0, neighbor=None):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.x_list = []
         self.f_list = []
         self.T0 = T0
+        if neighbor:
+            self.neighbor = neighbor
         
     def contour_plot(self,points=None):
         if len(self.upper_bounds) == 2:
@@ -44,17 +46,25 @@ class SimulatedAnnealingOptimizer(optimizer.Optimizer):
         # T = T0/float(itr+1)
         
         return T
+    
+    def neighbor(self, x):
+        upper_bounds = self.upper_bounds
+        lower_bounds = self.lower_bounds
+        step_size = (np.array(upper_bounds)-np.array(lower_bounds))/100
+        n = len(upper_bounds)
+        
+        xnew = x+randn(n)*step_size
+        
+        return xnew
         
     def optimize(self, x0):
         function = self.function
         max_iters = self.max_iters
         upper_bounds = self.upper_bounds
         lower_bounds = self.lower_bounds
-        step_size = (np.array(upper_bounds)-np.array(lower_bounds))/100
         T0 = self.T0
-        
-        n = len(upper_bounds)
-        
+        neighbor = self.neighbor
+                
         # initialize some stuff
         function.counter = 0
         f = function(x0)
@@ -64,12 +74,13 @@ class SimulatedAnnealingOptimizer(optimizer.Optimizer):
         
                 
         for k in range(max_iters):
-            
             # set the temperature
             T = self.temperature(T0,k,max_iters)
             
             # choose a neighboring solution
-            xnew = np.clip(x+randn(n)*step_size, lower_bounds, upper_bounds) # enforce bounds
+            xnew = neighbor(self,x)
+            xnew = np.clip(xnew, lower_bounds, upper_bounds) # enforce bounds, not sure if this should be handled inside the neighbor function
+            
             fnew = function(xnew)
             
             # determine probability of accepting new solution
