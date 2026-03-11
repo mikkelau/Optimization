@@ -80,7 +80,30 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
     #         children = np.vstack((children,np.vstack((child1,child2))))
         
     #     return children
-            
+    
+    def mutation(self, children, gen):
+        max_iters = self.max_iters
+        upper_bounds = self.upper_bounds
+        lower_bounds = self.lower_bounds
+        n = len(upper_bounds)
+        
+        # mutation parameters
+        scale = 0.1 #determines the standard deviation of the random numbers generated
+        shrink = 0.5 #scalar, [0,1]. As the optimization progress goes forward, decrease the mutation range (for example, shrink?[0.5, 1.0]) is usually used for local search
+        mutfrac =2/n # =crossfrac , default in NSGA code
+                
+        # calculate the mutation parameters using scale and shrink
+        S = np.array([scale*(1-shrink*gen/max_iters)*(upper_bounds[n]-lower_bounds[n]) for n in range(n)])
+        mutation_flag = [random.random() < mutfrac for i in range(n)]
+        # do the mutation
+        for i in range(len(children)):
+            randNum = np.array([np.random.randn() for j in range(n)])
+            children[i] += S*mutation_flag*randNum
+        # enforce bounds
+        children = np.clip(children, lower_bounds, upper_bounds)    
+        
+        return children
+        
     def optimize(self):
         function = self.function
         max_iters = self.max_iters
@@ -90,12 +113,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
                 
         n = len(upper_bounds)
         
-        # mutation parameters
-        scale = 0.1 #determines the standard deviation of the random numbers generated
-        shrink = 0.5 #scalar, [0,1]. As the optimization progress goes forward, decrease the mutation range (for example, shrink?[0.5, 1.0]) is usually used for local search
-        mutfrac =2/n # =crossfrac , default in NSGA code
-        
-        #create first generation
+        # determine population size
         if num_pops:
             #needs to be even
             if (num_pops%2 == 1):
@@ -106,6 +124,13 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         # sample the solution space
         engine = qmc.LatinHypercube(d=n)
         sample = engine.random(n=num_pops)
+        
+        # if binary == True:
+        #     threshold = 0.5 # 0.5 for equal probability of 0 or 1
+        #     points = (sample >= threshold).astype(int)
+        # else:
+        #     points = qmc.scale(sample, lower_bounds, upper_bounds)
+            
         points = qmc.scale(sample, lower_bounds, upper_bounds)
         
         # plot initial population
@@ -149,15 +174,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             children = self.create_children(pool,pool_fitness)
                 
             # mutation
-            # calculate the mutation parameters using scale and shrink
-            S = np.array([scale*(1-shrink*gen/max_iters)*(upper_bounds[n]-lower_bounds[n]) for n in range(n)])
-            mutation_flag = [random.random() < mutfrac for i in range(n)]
-            # do the mutation
-            for i in range(len(children)):
-                randNum = np.array([np.random.randn() for j in range(n)])
-                children[i] += S*mutation_flag*randNum
-            # enforce bounds
-            children = np.clip(children, lower_bounds, upper_bounds)    
+            children = self.mutation(children,gen)   
             
             # Choose next generation
             fitness_children = np.array([function(child) for child in children])
