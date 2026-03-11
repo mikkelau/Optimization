@@ -78,13 +78,16 @@ class SimulatedAnnealingOptimizer(optimizer.Optimizer):
             T = self.temperature(T0,k,max_iters)
             
             # choose a neighboring solution
-            xnew = neighbor(self,x)
+            xnew = neighbor(x)
             xnew = np.clip(xnew, lower_bounds, upper_bounds) # enforce bounds, not sure if this should be handled inside the neighbor function
             
             fnew = function(xnew)
             
             # determine probability of accepting new solution
-            P = min(math.exp((f-fnew)/T),1)
+            if fnew < f:
+                P = 1
+            else:
+                P = math.exp((f-fnew)/T)
             
             # randomly draw from uniform distribution
             r = random.random()
