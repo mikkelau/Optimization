@@ -5,13 +5,13 @@ Created on Sun Jun  9 12:27:17 2024
 @author: mikke
 """
 
-from optimizer_GA import GeneticAlgorithmOptimizer 
+from optimizer_RealEncodedGA import RealEncodedGAOptimizer 
 
 # from BeanFunction import function, upper_bounds, lower_bounds, gradients, hessian, f_opt, f_opt_tol
 # from Brachistochrone import function, upper_bounds, lower_bounds
 # from Rosenbrock import function, upper_bounds, lower_bounds, gradients, hessian
 # from GoldsteinPrice import function, upper_bounds, lower_bounds, gradients, hessian # has local minima
-from TwoSpring import function, upper_bounds, lower_bounds, gradients, hessian
+from TwoSpring import function, upper_bounds, lower_bounds
 # from Rosenbrock_Stretched import function, upper_bounds, lower_bounds, gradients, hessian
 # from BoothFunction import function, upper_bounds, lower_bounds, gradients, hessian
 # from BukinFunction import function, upper_bounds, lower_bounds, gradients, hessian
@@ -29,7 +29,7 @@ for runNum in range(numRuns):
     # initial guess
 
     # initialize the optimizer
-    optimizer = GeneticAlgorithmOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_generations=True, num_pops=33)
+    optimizer = RealEncodedGAOptimizer(function, upper_bounds, lower_bounds, max_iters, plot_generations=True, num_pops=33)
     
     # call optimize
     optimizer.optimize()
