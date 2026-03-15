@@ -45,8 +45,8 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
             fig.canvas.flush_events()
             time.sleep(0.3)
 
-            # reset the function counter to 0 so that making the contour plot isn't counted
-            function.counter = 0
+        # reset the function counter to 0 so that making the contour plot isn't counted
+        function.counter = 0
         
         # determine best fitness and best point
         fitness = np.array([function(point) for point in points])

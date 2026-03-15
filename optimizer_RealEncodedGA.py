@@ -111,12 +111,13 @@ class RealEncodedGAOptimizer(optimizer_GA.GeneticAlgorithmOptimizer):
         mutfrac = 2/n # =crossfrac , default in NSGA code
                 
         # calculate the mutation parameters using scale and shrink
-        S = np.array([scale*(1-shrink*gen/max_iters)*(upper_bounds[n]-lower_bounds[n]) for n in range(n)])
-        mutation_flag = [random.random() < mutfrac for i in range(n)]
+        S = scale*(1-shrink*gen/max_iters)*(np.array(upper_bounds)-np.array(lower_bounds))
+        mutation_mask = np.random.random(children.shape) < mutfrac
+        
         # do the mutation
-        for i in range(len(children)):
-            randNum = np.array([np.random.randn() for j in range(n)])
-            children[i] += S*mutation_flag*randNum
+        randNum = np.random.randn(*children.shape)
+        children += S*randNum*mutation_mask
+
         # enforce bounds
         children = np.clip(children, lower_bounds, upper_bounds)    
         
