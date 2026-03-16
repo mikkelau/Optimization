@@ -12,7 +12,7 @@ import time
 import matplotlib.pyplot as plt
 
 class GeneticAlgorithmOptimizer(optimizer.Optimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, num_pops=None):
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, num_pops=None, plot_generations=False):
         super().__init__(function, upper_bounds, lower_bounds, max_iters)
         self.x_list = []
         self.f_list = []
@@ -58,7 +58,7 @@ class GeneticAlgorithmOptimizer(optimizer.Optimizer):
         
         gen = 1
         while gen <= max_iters:
-                        
+
             # determine the mating pool via tournament selection.
             # each point is randomly paired with another point, and the winner gets added to the mating pool
             pool = []

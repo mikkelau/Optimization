@@ -12,8 +12,8 @@ import random
 from scipy.stats import qmc
 
 class RealEncodedGAOptimizer(optimizer_GA.GeneticAlgorithmOptimizer):
-    def __init__(self, function, upper_bounds, lower_bounds, max_iters, num_pops, plot_generations=False):
-        super().__init__(function, upper_bounds, lower_bounds, max_iters, num_pops)
+    def __init__(self, function, upper_bounds, lower_bounds, max_iters, num_pops=None, plot_generations=False):
+        super().__init__(function, upper_bounds, lower_bounds, max_iters, num_pops, plot_generations)
         self.x_list = []
         self.f_list = []
         self.plot_generations = plot_generations

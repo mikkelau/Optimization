@@ -6,10 +6,9 @@ Created on Tue Jan  3 14:06:35 2023
 """
 from numpy import array
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import MaxNLocator, LogLocator
 import copy
 import numpy as np
-from matplotlib import ticker
 
 class Optimizer:
     def __init__(self, function, upper_bounds, lower_bounds, max_iters):
@@ -62,7 +61,7 @@ class Optimizer:
         # create filled contour plot
         fig, ax = plt.subplots(1, 1)
         if ((Z.max() > 1000*Z.min()) and (Z.min() > 0)): # check if a logarithmic contour plot is needed        
-            cs = ax.contourf(X, Y, Z, locator=ticker.LogLocator())
+            cs = ax.contourf(X, Y, Z, locator=LogLocator())
             # plot colorbar
             cbar = fig.colorbar(cs, format='%.0e')
         else:

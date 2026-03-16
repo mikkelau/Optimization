@@ -12,7 +12,7 @@ from scipy.stats import qmc
 
 class BinaryEncodedGAOptimizer(optimizer_GA.GeneticAlgorithmOptimizer):
     def __init__(self, function, upper_bounds, lower_bounds, max_iters, num_pops=None, plot_generations=False):
-        super().__init__(function, upper_bounds, lower_bounds, max_iters, num_pops)
+        super().__init__(function, upper_bounds, lower_bounds, max_iters, plot_generations, num_pops)
         self.x_list = []
         self.f_list = []
         self.plot_generations = plot_generations
@@ -30,31 +30,35 @@ class BinaryEncodedGAOptimizer(optimizer_GA.GeneticAlgorithmOptimizer):
         points = (sample >= threshold).astype(int)
     
         return points
-    
+        
     def create_children(self,pool,fitness):
-        n = len(self.upper_bounds)
         
-        children = np.empty((0,n),dtype=int)
+        # make sure pool is a numpy array of ints
+        pool = np.array(pool,dtype=int)
         
-        # grab parents
-        for i in range(0,len(pool),2):
-            mom = pool[i]
-            dad = pool[i+1]
-            
-            # determine crossover point
-            randIdx = random.randint(1,len(mom)-1)
-            
-            # single-point crossover
-            child1 = np.append(mom[0:randIdx],dad[randIdx:])
-            child2 = np.append(dad[0:randIdx],mom[randIdx:])
-            
-            children = np.vstack((children,np.vstack((child1,child2))))
-         
+        n = pool.shape[1]
+        
+        # grab the parents
+        moms = pool[0::2]
+        dads = pool[1::2]
+        
+        # determine crossover points
+        randIdx = np.random.randint(1,n,size=pool.shape[0]//2)[:,None]
+        idx = np.arange(n)
+        mask = idx < randIdx
+
+        # single-point crossover
+        children1 = np.where(mask, moms, dads)
+        children2 = np.where(mask, dads, moms)
+        
+        # combine the two sets of children
+        children = np.vstack((children1,children2))
+        
         return children
      
     def mutation(self, children, gen):
         
-        # make sure these are all ints
+        # make sure children is a numpy array of ints
         children = np.array(children,dtype=int)
 
         n = len(children[0])
@@ -69,4 +73,4 @@ class BinaryEncodedGAOptimizer(optimizer_GA.GeneticAlgorithmOptimizer):
         children[mutation_mask] ^= 1
             
         return children
-        
+    
